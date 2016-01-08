@@ -10,7 +10,14 @@
 
 \section{Introduction}
 State of the art in weak lensing?
+	The light from distant galaxies is bent on its way to observers on earth by intervening mass. This bending gives us information about the composition and evolution of the universe. This effect is very small and thus its measurement requires good accuracy and precision. Unfortunately, telescopes on Earth deal with a handicap caused by the atmosphere that distant light rays encounter just before being received. The density and movement of these atmospheric layers act to blur the recorded images. This blurring can change the appearance of galaxy shapes. This is clearly problematic for measuring distortion caused by gravitational lensing. To try and correct for the blurring caused by this effect and other imperfections of the telescope structure, one can look at the shapes of stars. Since stars are effectively point sources, any distortion therin can be attributed to this blurring. The size measured from stars on an images is called the point spread function (PSF). One can deconvolve this PSF from the image, but its information can still leak into weak lensing measurements. 
+	Any ellipticity contribution from the PSF can be much larger than the ellipticity induced by gravitational lensing. 
+	
+
 Dark Energy Survey goals - psf size.
+	Dark energy is characterized by the parameter w. To measure w to an accuracy of 5*% using weak lensing, the measured shear must be accurate to ***. 
+	The Dark Energy Survey is a five-year ** square degree survey which uses a 500 Megapixel camera located on the Blanco 1.4 meter telescope on Cerro Tololo in Chile. 
+	
 What kind of ellipticity is acceptable.
 Current/at the time wind screen suggestions.
 The Dark Energy Survey aims to .... sensitivities.
@@ -20,7 +27,17 @@ Accelerometer sensitivity vs. Guider sensitivity - which one to look at?
 How bad is too bad?
 Speed recommendations - do they differ with official guidelines
 
-
+--summary of work presented at Brighton meeting 2014--
+I looked at all of the (working) anemometer data that was available. This consisted of time periods between 4/21/14 to 5/15/14 and 9/17/14 to time of meeting. 
+I used two values of interest from the device: w_speed (one direction) and magnitude (2 combined directions). I found the typical rms values to be between 0 and 2 m/s, with a handful of nights > 3m/s. 
+There is an accelerometer fitted on the telescope (where?***) that records data at 500 Hz. I averaged these data down to 50 Hz in each of the 3 directions. This was then divided into chunks by exposure. To accound for the overall drift and gravity, I subtract a linear fit from the exposure chunk. I applied a butterworth highpass filter at 1 Hz in the hopes that the guider will account for motion below this frequency. This signal is then integrated twice to get the displacement incurred on the telescope. This movement was then compared to the anemometer data by matching up the exposure times. 	
+	An example windy night (May 9) shows the upward trend of acceleration and displacement with wind speed starting fairly sharply around 3 m/s. 
+	Acceleration data is shown for 3 separate weeks (one in May, September, and October), keeping in mind that it was very time consuming gathering and reducing the data in Chile remotely. The typical displacements for these time periods rarely exceed 1-1.2 microns, with a slight upward trend at wind speeds above 3-4 m/s, though there were not very many data points in these region. It is shown that the motion seen is generally below the ~0.25% ellipticity level (find/redo this math). 
+	A selection of high motion exposures are shown, with one low wind speed and three that are 2-5 m/s rms wind speeds. 
+	The telescope control system (tcs) and guider can give insight into motion below 1 Hz. Data are shown from two of the same weeks as before from Y2. Definite positive trends can be seen in the guider and tcs errors with high wind speed, specifically above 4 m/s. 
+	In conclusion, we see motion, but the highest rms wind speeds produce <1% ellipticity at frequencies greater than 1 Hz. Thus, it would be rare for the wind to have a significant impact on image quality. The guider, however, shows potentially significant impact at frequencies less than or equal to 1 Hz. The wind also seems to be causing this motion almost entirely in right ascension. These trends can be further
+ monitored using the telemetry database. 
+---------
 
 \section{Anemometer}
 The anemometer is located on the top ring of the Blanco Telescope. It is a WindMaster that measures the speed and direction of the wind near the telescope.
@@ -74,6 +91,20 @@ I plotted these using rmsplots.py.
 We prescribed a cutoff ($1e-8 G^{2}$)for which values of the excess variance could potentially produce a 3\% effect on the image ellipticity. 
 This was determined using a frequency of 2.5Hz based off of the graph of the telescope's modes provided by Mike Warner.
 
+
+I have gained access to the Windows computer that logs the accelerometer data for chunks of time a couple of days or a week in length. 
+I can transfer the compressed files to observer computer at DECamObserver@observer2.ctio.noao.edu. 
+There is a directory there called /data_local/accel where I can keep scripts and .tdms files. 
+There is a module called pyTDMS that will read in the .tdms files and dump them in a tuple containing the metadata and raw data. 
+The 'All Data' lists exist for all three axes (labeled 0, 1, and 2: still have to find out if these correspond to x, y, and z in that order).
+'All Data' lists contain raw data sampled at 500 Hz. 
+I took this data and averaged every 10 samples to give 50 points per second.
+The script tdms_to_fits.py will do this job and write each axis's data to a separate binary fits table. 
+To separate the data by exposure, I created plot_voltage.py to match the dates by utc time in seconds. 
+It's still unclear whether the initial time listed in the file is correct.
+When converted to time stamp format, it the month, day, and time match the file name but the year is listed as 2080. 
+Kevin Reil provided a python script (accel.py) that will take an ascii file provided by Mike and filter the data into rms values per 5 seconds of 500 Hz data.
+I think I can take the high/low pass filter functions and the integration done in the analysis function (to get distances) and apply it to my data. 
 
 \begin{figure}[h!]
   \centering
@@ -156,16 +187,4 @@ All of the exposures < 15 s were part of that blob.
 \end{document}
 
 
-I have gained access to the Windows computer that logs the accelerometer data for chunks of time a couple of days or a week in length. 
-I can transfer the compressed files to observer computer at DECamObserver@observer2.ctio.noao.edu. 
-There is a directory there called /data_local/accel where I can keep scripts and .tdms files. 
-There is a module called pyTDMS that will read in the .tdms files and dump them in a tuple containing the metadata and raw data. 
-The 'All Data' lists exist for all three axes (labeled 0, 1, and 2: still have to find out if these correspond to x, y, and z in that order).
-'All Data' lists contain raw data sampled at 500 Hz. 
-I took this data and averaged every 10 samples to give 50 points per second.
-The script tdms_to_fits.py will do this job and write each axis's data to a separate binary fits table. 
-To separate the data by exposure, I created plot_voltage.py to match the dates by utc time in seconds. 
-It's still unclear whether the initial time listed in the file is correct.
-When converted to time stamp format, it the month, day, and time match the file name but the year is listed as 2080. 
-Kevin Reil provided a python script (accel.py) that will take an ascii file provided by Mike and filter the data into rms values per 5 seconds of 500 Hz data.
-I think I can take the high/low pass filter functions and the integration done in the analysis function (to get distances) and apply it to my data. 
+
