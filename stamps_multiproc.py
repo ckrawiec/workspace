@@ -1,5 +1,6 @@
 import galsim
 import os
+import sys
 import numpy as np
 import math
 import argparse
@@ -101,13 +102,7 @@ class BobsEDist:
                     break
         return e1,e2
     
-def drawSubImages(final_gal, sub_image):
-    final_gal.drawImage(sub_image)            
-    
-    if p.noise_suppression==False:
-        sub_image.addNoise(noise)
-
-def writeToImage(image, file):
+def writeToFile((image, file)):
     image.write(file)
 
 def main():
@@ -115,8 +110,8 @@ def main():
     p = get_params()
 
 #can't output anything but noise_var
-#    print "Parameters chosen for postage stamp sims:"
-#    print p
+    sys.stderr.write("Parameters chosen for postage stamp sims: \n")
+    sys.stderr.write("{}\n".format(p))
     
     rng = galsim.UniformDeviate(p.random_seed)
  
@@ -220,11 +215,10 @@ def main():
                 
                 final = galsim.Convolve([psf,this_gal])
 
-                final_gals.append(final)
-                images.append(sub_gal_image)
-
-        pool = mp.Pool()
-        pool.map(drawSubImages, zip(final_gals,images))
+                final.drawImage(sub_gal_image)            
+    
+                if p.noise_suppression==False:
+                    sub_gal_image.addNoise(noise)
     
         gal_file = os.path.join(p.file_dir,''.join([gal_name[0],
                                                     str(ifile+1).zfill(2),
