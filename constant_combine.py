@@ -30,7 +30,8 @@ def gaverage(moments):
         f.close()
     print 'number of trials: ', len(g1)
     print 'Total used: ', use
-    print 'Std. Dev: ', np.std(g1)
+    print 'Std. Dev: g1: ', np.std(g1), ' g2: ', np.std(g2)
+    print 'average uncertainty: g1: ', np.mean(g1u), ' g2: ', np.mean(g2u)
     print 'average g1: ', np.mean(g1),'+-', np.mean(g1u)/np.sqrt(len(g1))
     print 'average g2: ', np.mean(g2),'+-', np.mean(g2u)/np.sqrt(len(g2))
         

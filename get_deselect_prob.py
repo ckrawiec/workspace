@@ -34,10 +34,12 @@ select_prob = 1-deselect_prob
 
 u = np.std(deselect_prob_list, dtype=np.float64)
 
-print deselect_prob_list
-print "Probability of deselection: ", deselect_prob
-print "Probability of selection: ", select_prob
-print "Uncertainty: ", u
+#print deselect_prob_list
+print "g = ",g
+print "Number of trials: ",len(moment_files)
+print "Probability of deselection (mean): ", deselect_prob
+print "Probability of selection (1-mean): ", select_prob
+print "Uncertainty (std. dev.): ", u
 
 
 

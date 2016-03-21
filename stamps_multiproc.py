@@ -6,6 +6,7 @@ import math
 import argparse
 import multiprocessing as mp
 from astropy.io import fits
+from timeit import default_timer as timer
 
 #Moffat PSF with ellipticity e2
 #Galaxies have bulge and disk components
@@ -106,6 +107,7 @@ def writeToFile((image, file)):
     image.write(file)
 
 def main():
+    start = timer()
 
     p = get_params()
 
@@ -233,13 +235,15 @@ def main():
         gal_images.append(gal_image)
         psf_images.append(psf_image)
 
-    filepool = mp.Pool()
+    filepool = mp.Pool(12)
     filepool.map(writeToFile, zip(gal_images, gal_files))
 
-    psfpool = mp.Pool()
+    psfpool = mp.Pool(12)
     psfpool.map(writeToFile, zip(psf_images, psf_files))
 
-
+    end = timer()
+    sys.stderr.write("Images created in {} sec\n".format(end-start))
+    
 if __name__ == "__main__":
     main()
 
