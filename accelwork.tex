@@ -49,6 +49,8 @@ At the May 2014 Dark Energy Survey collaboration meeting, Kevin Reil from SLAC g
 	The accelerometer is run through LabView and thus it's output files need to be converted to a more pliable format. I did my analysis in Python. I wrote a script to read these LabView files, convert them to binary FITS tables, and put the voltage in the correct acceleration units. I wrote a separate script that splits the raw output by exposure. The time stamp from the accelerometer and the actual start time of each exposure may be off by a few seconds. This should not have a significant impact on the data. 
 	
 \section{Filtering}
+	The accelerometer outputs data at a rate of ***Hz. It is sensitive to motion with frequencies within the range ?-? Hz. I am only interested in motion that could have a detrimental effect on the quality of the exposure being taken at the time. Typical exposures used for weak lensing analyses are 30 seconds long. Over this duration, the accelerometer will track the change in gravity due to the motion of the telescope. Thus I must use a lowpass filter over the data ..
+
 	It is necessary to run a lowpass filter over the raw data to remove the drift and changes in gravity due to the pointing of the telescope. A highpass filter is also applied to cut down on noise. 
 %%%
 
