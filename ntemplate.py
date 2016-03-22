@@ -23,6 +23,7 @@ for moment_file in moment_files:
     umins.append(np.min(mf[used]))
     umaxs.append(np.max(mf[used]))
     
+    f.close()
 
 print "minimum M_f: ", np.min(mins)
 print "average minimum M_f: ", np.mean(mins)
