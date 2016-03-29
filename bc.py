@@ -6,6 +6,39 @@ import matplotlib.pyplot as plt
 from subprocess import call
 from astropy.io import ascii, fits
 
+"""
+For redshift range: use round(z,1), step size of 0.025 to match bc outputs
+"""
+
+title = "SSP and 1-3Gyr BURSTs with Z=0.02,0.04, Padova2000 tracks, Chabrier IMF"
+ages_then = np.arange(1.,14.,0.5)
+zrange = np.arange(round(0.15,2),round(0.95,2),0.005)
+IMF = "chabrier"
+model = "Padova2000"
+dusts = ['nodust'] #'dust' or 'nodust'
+tauV="1."
+mu="0.3"
+metals = ["m162","m172"]
+starform = ["SSP","BURST"]
+mass = np.logspace(11.9,13.,5)
+constSFR = ["10","20","30","40","50"]
+burstlengths = ["1","2","3"]
+filtcoms = [(258,259),(259,260),(260,261)]
+
+pltd = {'x' : 'redshift',
+        'y' : 'i-z',
+        'color' : 'age (Gyr)',
+        'cutmag' : 'z',
+        'maglimitlow' : 0.,
+        'plotdir' : 'plots/SVA1RedMagic',
+        'redmagic' : True,
+        'xlim' : [0.15,0.85],
+        'ylim' : [0.2,1.5]}
+
+colorfit = True
+fitdict = {'color':'g-r',
+           'Nmatch':22034}#max 22034
+
 #constants
 #flat universe
 h=0.72
@@ -19,34 +52,12 @@ cA = 3.e18 #Angstrom/s
 
 ABflux = 3.631e-20 #ergs/s/cm^2/Hz
 Lsun = 3.826e33 #erg/s
+#1. #Lsun (for easier Mass units) 
  
-colorfit = True
+#if you want to compare with SDSS E types
+#Etypes = ascii.read('/Users/Christina/GradCourses/Galaxies/hw2/Etypes_AstroGrad.dat')
 
-IMF = "chabrier"
-model = "Padova2000"
-dust = 'nodust' #'dust' or 'nodust'
-tauV="1."
-mu="0.3"
-metals = ["m142","m152","m162","m172"]
-starform = ["BURST","CONST"]
-mass = np.logspace(11.9,13.,5)
-constSFR = ["10","20","30","40","50"]
-burstlength = ["1","2","3"]
-filtcoms = [(258,259),(259,260),(260,261)]
-
-pltd = {'x' : 'redshift',
-        'y' : 'g-r',
-        'color' : 'age (Gyr)',
-        'cutmag' : 'z',
-        'maglimitlow' : 0.,
-        'plotdir' : 'plots/highz/{}/'.format(dust),
-        'redmagic' : False,
-        'xlim' : [-1,6],
-        'ylim' : [-1,6]}
-
-fitdict = {'color':'g-r',
-           'Nmatch':22034}#max 22034
-
+#dictionary for parsing BC03 color codes
 filter_dict = {'257258':'u-g',
                '258259':'g-r',
                '259260':'r-i',
@@ -57,17 +68,8 @@ filter_dict = {'257258':'u-g',
                '260':'i',
                '261':'z'}
 
-#ages you want
-Etypes = ascii.read('/Users/Christina/GradCourses/Galaxies/hw2/Etypes_AstroGrad.dat')
-ages_then = np.arange(0.01,6.,0.5)
-
-#redshifts you want
-#use round(z,1), step size of 0.025 to match bc outputs
-zrange = np.arange(round(0.5,1),round(6.5,1),0.1)
-
 #SVA1 RedMagic
 red = fits.open('redmagic_sva1_public_v6.3_bright.fits.gz')[1].data
-
 rmd = {'g-r':red['mag_auto_g']-red['mag_auto_r'],
        'r-i':red['mag_auto_r']-red['mag_auto_i'],
        'i-z':red['mag_auto_i']-red['mag_auto_z'],
@@ -97,9 +99,77 @@ tput = {'u' : {'wave': np.array(tputtabs['u']['wavelength']),
         'Y' : {'wave': np.array(tputtabs['Y']['wavelength']),
                'tput': np.array(tputtabs['Y']['Y'])}}
 
+class Template:
+    """
+    model = Padova1994 or Padova2000
+    imf = salpeter or chabrier
+    metal = m42,m52,m62,m72 (Padova1994) or m142,m152,m162,m172 (Padova2000)
+    dust = dust or nodust
+    sf = CONST, BURST, SSP, EXP1, EXP2, EXP3
+    sfr = star formation rate for CONST (integer, Msun/yr)
+    burstlength = length of starburst for BURST (integer, Gyr)
+    tau = BC2003 tau for dust (1.0 in paper)
+    mu = BC2003 mu for dust (0.3 in paper)
+    """
+    def __init__(self,model,imf,metal,dust,sf,sfr='',burstlength='',tau='',mu=''):
+        self.modelname = 'bc2003_hr_{}_{}_{}_{}'.format(metal,imf[:4],dust,sf)
+
+        self.dustdir = dust
+        if tau:
+            self.dustdir = os.path.join(dust,'tauV{}mu{}'.format(tauV,mu)).replace('.','')
+
+        self.sfdir = sf
+        if sfr:
+            self.sfdir = os.path.join(sf,sfr+'Msun-yr')
+            self.modelname+='_'+sfr
+        if burstlength:
+            self.sfdir = os.path.join(sf,burstlength+'Gyr')
+            self.modelname+='_'+burstlength
+        self.outdir = os.path.join('output',model,self.dustdir,metal,self.sfdir)            
+        
+    def calcspectrum(self,age):
+        """
+        Runs galaxevpl for the model at the given age and plots the spectrum.
+        Returns wavelength and flux arrays in Angstroms and ergs/s/Angstroms.
+        """
+        age = str(age)
+    
+        if not os.path.exists(os.path.join(self.outdir,age)):
+            os.system('mkdir {}/{}'.format(self.outdir,age))
+
+        specfile = self.modelname+'.sed'
+
+        #if os.path.exists('{}/{}/{}'.format(self.outdir,age,specfile)):
+            #print "Spectrum {} at age {} Gyr has previously been calculated. Skipping galaxevpl.".format(specfile,age)
+        #else:
+        runfile = '{}/run_{}_gpl.dat'.format(self.outdir,self.modelname)
+        outfile = open(runfile,'w')
+        outfile.write("""%s
+%s
+
+%s
+"""%(os.path.join(self.outdir,self.modelname),age,specfile))
+        outfile.close()
+        
+        os.system('src/galaxevpl < {}'.format(runfile))
+        os.system('mv {} {}/{}'.format(specfile,self.outdir,age))
+    
+        spectrum = ascii.read(os.path.join(self.outdir,age,specfile))
+        lam = np.array(spectrum['col1']) #Angstrom
+        flux = np.array(spectrum['col2']) * Lsun #ergs/s/Angstrom
+        plt.plot(lam,flux)
+        plt.xlabel('wavelength (Angstrom)')
+        plt.ylabel('flux (ergs/s/Angstrom)')
+        plt.xlim(2000,12000)
+        plt.ylim(0.,1.5e31)
+        plt.savefig('plots/spectra/'+self.modelname+age.replace('.','-'))
+        plt.close()
+        
+        return lam, flux
+
 def uage(z):
-    #age of universe at redshift z
-    return integ.quad(ageintegral,z,np.inf)[0]
+    #age of universe at redshift z in Gyr
+    return integ.quad(ageintegral,z,np.inf)[0] / 3.2e16
 
 def ageintegral(z):
     return 1./(H0*np.sqrt(Om*(1.+z)**5. + Or*(1.+z)**6. + Ol*(1+z)))
@@ -111,31 +181,6 @@ def dLum(z):
     dp = cH * integ.quad(I,0,z)[0] #Mpc
     dL = dp * (1+z) * 3.086e24 #cm
     return dL
-
-def calcspectrum(outdir,model,age):
-    runfile = outdir+'run_{}_gpl.dat'.format(model.split('.')[0])
-    
-    if not os.path.exists('{}{}/'.format(outdir,age)):
-        os.system('mkdir {}{}'.format(outdir,age))
-
-    specfile = os.path.splitext(model)[0]+'.sed'
-
-    if os.path.exists('{}{}/{}'.format(outdir,age,specfile)):
-        print "Spectrum {} has previously been calculated. Skipping galaxevpl.".format(specfile)
-
-    else:
-        outfile = open(runfile,'w')
-        outfile.write("""%s
-%s
-
-%s
-"""%(outdir+model,age,specfile))
-        
-        outfile.close()
-        
-        os.system('src/galaxevpl < {}'.format(runfile))
-        os.system('mv {} {}{}'.format(specfile,outdir,age))
-    return '{}{}/{}'.format(outdir,age,specfile)
 
 def colormatch(d):
     tally = {}
@@ -166,48 +211,62 @@ def colormatch(d):
     mindict['title']='colorfit_'+d['title']
     plotfromdict(mindict)
 
-def getcolors(specfile,age,fdict):
-    #uses global vars zrange and filts
-    spectrum = ascii.read(specfile)
-    model = specfile.split('/')[-1].split('.')[0]
-    #units?
-    lam = np.array(spectrum['col1']) #Angstrom
-    flux = np.array(spectrum['col2']) * Lsun #ergs/s/Angstrom
+def getcolors(templates,age):
+    """
+    For a given list of templates at the given age, returns a dictionary
+    with magnitude, colors, models, ages, masses, and redshifts listed.
+    
+    Uses global vars zrange, mass, and filts.
+    """
 
-    check=0
-    fset = {}
-
+    fdict={'mass':[],'age (Gyr)':[],'redshift':[],'model':[]}
     for combo in filtcoms:
         f1,f2 = combo
         filters = str(f1)+str(f2)
-
+        fdict[filter_dict[filters]]=[]
+        
         for f in combo:
-            if f not in fset.keys():
-                fset[f]=[]
+            if str(f) not in fdict.keys():
+                fdict[filter_dict[str(f)]]=[]
+    
+    for t in templates:
+        wave,flux = t.calcspectrum(age)
+        
+        fset = {}
+        
+        check=0
+        for combo in filtcoms:
+            f1,f2 = combo
+            filters = str(f1)+str(f2)
 
-                for z in zrange:
-                    if age > uage(z):
-                        continue
+            for f in combo:
+                if f not in fset.keys():
+                    fset[f]=[]
 
-                    mag = getmag(lam, flux, tput[filter_dict[str(f)]]['wave'],
-                                 tput[filter_dict[str(f)]]['tput'], z)
+                    for z in zrange:
+                        if age > uage(z):
+                            continue
 
-                    for M in mass:
-                        fset[f].append(mag-2.5*np.log10(M))
-                        if check==0:
-                            fdict['age (Gyr)'].append(float(age))
-                            fdict['redshift'].append(z)
-                            fdict['mass'].append(M)
-                            fdict['model'].append(model)
-                fdict[filter_dict[str(f)]] += fset[f]
-                check=1
-        color = [fset[f1][i]-fset[f2][i] for i in range(len(mass)*len(zrange))]
-        fdict[filter_dict[filters]] += [c for c in color]
+                        mag = getmag(wave, flux, f, z)
+
+                        for M in mass:
+                            fset[f].append(mag-2.5*np.log10(M))
+                            if check==0:
+                                fdict['age (Gyr)'].append(float(age))
+                                fdict['redshift'].append(z)
+                                fdict['mass'].append(M)
+                                fdict['model'].append(t.modelname)
+                    fdict[filter_dict[str(f)]] += fset[f]
+                    check=1
+            color = [fset[f1][i]-fset[f2][i] for i in range(len(fset[f1]))]
+            fdict[filter_dict[filters]] += [c for c in color]
 
     return fdict
 
+def getmag(wave, specflux, filter, redshift):
+    filtwave = tput[filter_dict[str(filter)]]['wave']
+    filttput = tput[filter_dict[str(filter)]]['tput']
 
-def getmag(wave, specflux, filtwave, filttput, redshift):
     #change units from Angstrom to Hz
     nu = cA/np.array(wave)
     nufilt = cA/np.array(filtwave)
@@ -235,25 +294,15 @@ def getmag(wave, specflux, filtwave, filttput, redshift):
     filtspec = speczfinal * itput
 
     #calculate total observed flux
-    totflux = np.trapz(filtspec * (1+redshift) / nufinal, nufinal) / (4.*np.pi*dLum(redshift)**2) / np.trapz(itput*ABflux/nufinal,nufinal)
+    if redshift==0.:
+        d = 10. * 3.086e18 #cm
+    else:
+        d = dLum(redshift) #cm
+    totflux = np.trapz(filtspec * (1+redshift) / nufinal, nufinal) / (4.*np.pi*d**2) / np.trapz(itput*ABflux/nufinal,nufinal)
 
     mag = -2.5*np.log10(totflux)#-48.60 #AB
 
     return mag
-
-def makecolordict(basefile):
-    fdict={'mass':[],'age (Gyr)':[],'redshift':[],'model':[]}
-    for combo in filtcoms:
-        f1,f2 = combo
-        filters = str(f1)+str(f2)
-        fdict[filter_dict[filters]]=[]
-        
-        for f in combo:
-            if str(f) not in fdict.keys():
-                fdict[filter_dict[str(f)]]=[]
-
-    fdict['title']=basefile[7:]+' '
-    return fdict
 
 def mergedicts(dicts):
     #dict elements must be lists, not arrays
@@ -264,13 +313,14 @@ def mergedicts(dicts):
     return new
 
 def plotfromdict(d):                            
+#    for k in d.keys():
+#        print k, len(d[k])
     colormap = plt.get_cmap('jet')
     if pltd['redmagic']:
         plt.scatter(rmd[pltd['x']],rmd[pltd['y']],c='m',edgecolor='none',s=5.)
 
-
     #magnitude cuts
-#    magcut = np.where(np.array(d[pltd['cutmag']])>pltd['maglimitlow'])
+    #magcut = np.where(np.array(d[pltd['cutmag']])>pltd['maglimitlow'])
     plt.scatter(np.array(d[pltd['x']]),
                 np.array(d[pltd['y']]),
                 c=np.array(d[pltd['color']]),cmap=colormap,edgecolor='none',s=6.)
@@ -280,16 +330,17 @@ def plotfromdict(d):
     plt.xlabel(pltd['x'])
     plt.ylabel(pltd['y'])
     plt.title(d['title'])
-    savefile = pltd['plotdir']+d['title'].replace(' ','_')+pltd['y']+'_vs_'+pltd['x']
+    savefile = "{}/{}_{}_vs_{}".format(pltd['plotdir'],d['title'].replace(' ','').replace(',','_').replace('.','-'),
+                                       pltd['y'],pltd['x'])
     print "Saving plot: ", savefile
     plt.savefig(savefile)
     plt.close()                                  
-
 
 def main():
 
     cspcmd = ["python","run_csp.py","--IMF",IMF,"--model",model,
               "--SFhistory"]
+
     for sf in starform:
         cspcmd.append(sf)
     if 'CONST' in starform:
@@ -298,65 +349,56 @@ def main():
             cspcmd.append(sfr)
     if 'BURST' in starform:
         cspcmd.append("--burstlength")
-        for l in burstlength:
+        for l in burstlengths:
             cspcmd.append(l)
+
     cspcmd.append("--metal")
     for metal in metals:
         cspcmd.append(metal)
-    if dust=='dust':
-        dustdir='dust/tauV{}mu{}'.format(tauV,mu).replace('.','')
-        cspcmd.append("-dust")
-        cspcmd.append("--tauV")
-        cspcmd.append(tauV)
-        cspcmd.append("--mu")
-        cspcmd.append(mu)
-    else:
-        dustdir='nodust'
 
-    call(cspcmd)
+    for dust in dusts:
+        if dust=='nodust':
+            call(cspcmd)
+        else:
+            dustcmd  = ["-dust","--tauV"]
+            for tau in tauV:
+                dustcmd.append(tauV)
+            for m in mu:
+                dustcmd.append("--mu")
+            cspcmd.append(mu)
+            call(cspcmd+dustcmd)                        
 
-    #calculate colors at different redshifts
+    #calculate colors at different ages and redshifts
+    templates = []
     alldicts = []
     for metal in metals:
-        for sf in starform:
-            if sf=='CONST':
-                for sfr in constSFR:
-                    sfdir = 'CONST/{}Msun-yr'.format(sfr)
-                    cfiledir = './output/{}/{}/{}/{}/'.format(model,dustdir,metal,sfdir)
-                    basefile = 'bc2003_hr_{}_{}_{}_{}_{}'.format(metal,IMF[:4],dust,sf,sfr)
-                    fdict = makecolordict(basefile)
-                    for a in ages_then:
-                        sfile = calcspectrum(cfiledir,basefile+'.ised',a)
-                        fdict = getcolors(sfile,a,fdict)
+        for du in dusts:
+            for sf in starform:
+                if sf=='CONST':
+                    for sfr in constSFR:
+                        t = Template(model,IMF,metal,du,sf,
+                                     sfr=sfr)
+                        templates.append(t)
+                elif sf=='BURST':
+                    for l in burstlengths:
+                        t = Template(model,IMF,metal,du,sf,
+                                     burstlength=l)
+                        templates.append(t)
+                else:
+                    t = Template(model,IMF,metal,du,sf)
+                    templates.append(t)
 
-#get K-corrected spectrum!!!!!!
-
-                    alldicts.append(fdict)
-            elif sf=='BURST':
-                for l in burstlength:
-                    sfdir = 'BURST/{}Gyr'.format(l)
-                    cfiledir = './output/{}/{}/{}/{}/'.format(model,dustdir,metal,sfdir)
-                    basefile = 'bc2003_hr_{}_{}_{}_{}_{}'.format(metal,IMF[:4],dust,sf,l)
-                    fdict = makecolordict(basefile)
-                    for a in ages_then:
-                        sfile = calcspectrum(cfiledir,basefile+'.ised',a)
-                        fdict = getcolors(sfile,a,fdict)
-                    alldicts.append(fdict)
-
-            else:
-                    cfiledir = './output/{}/{}/{}/{}/'.format(model,dustdir,metal,sf)
-                    basefile = 'bc2003_hr_{}_{}_{}_{}'.format(metal,IMF[:4],dust,sf)
-                    fdict = makecolordict(basefile)
-                    for a in ages_then:
-                        sfile = calcspectrum(cfiledir,basefile+'.ised',a)
-                        fdict = getcolors(sfile,a,fdict)
-                    alldicts.append(fdict)
- 
-    for m in alldicts:
-        plotfromdict(m)
+    for a in ages_then:
+        fdict = getcolors(templates,a)
+        alldicts.append(fdict) 
+#    for m in alldicts:
+#        plotfromdict(m)
     d = mergedicts(alldicts)
-    d['title']='combinedmodel'
-    "Plotting the combined model."
+    if title:
+        d['title']=title
+    else:
+        d['title']='combinedmodel'
+    print "Plotting the combined model."
     plotfromdict(d)
 
     if colorfit:
