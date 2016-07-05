@@ -7,11 +7,12 @@ import itertools
 import time
 import esutil
 import numpy as np
+import healpy as hp
 import os
 from astropy.io import ascii,fits
 from myutils import match
 
-num_threads = 8
+num_threads = 1
 
 def nwrapper(args):
     return n(*args)
@@ -49,16 +50,7 @@ def n(vals, errs, truevals):
     
     return out
 
-def maketable(datatype, mask=None, cosmos=False, filters=['g','r','i','z','Y']):
-    table = {}
-    for f in filters:
-        if cosmos:
-            table[f] = sva1_gold[datatype+'_detmodel_'+f][gold_cosmos15][mask]
-            table[f+'err'] = sva1_gold[datatype+'err_detmodel_'+f][gold_cosmos15][mask]
-        else:
-            table[f] = sva1_gold[datatype+'_detmodel_'+f][gold_no_cosmos]
-            table[f+'err'] = sva1_gold[datatype+'err_detmodel_'+f][gold_no_cosmos]
-    return table
+
 
 
 def main():
@@ -67,16 +59,16 @@ def main():
     setup_start = time.time()
     
     #data sets
-    sva1_gold = fits.open('/home/ckrawiec/DES/data/sva1_gold_detmodel_gals.fits')[1].data
-    sva1_cosmos = fits.open('/home/ckrawiec/DES/data/sva1_coadd_cosmos.fits')
-    cosmos15 = fits.open('/home/ckrawiec/COSMOS/data/COSMOS2015_Laigle+_v1.1.fits')[1].data
+    sva1_gold = fits.open('/Users/Christina/COSMOS/sva1_gold_detmodel_gals.fits')[1].data
+    sva1_cosmos = fits.open('/Users/Christina/COSMOS/sva1_coadd_cosmos.fits')[1].data
+    cosmos15 = fits.open('/Users/Christina/COSMOS/COSMOS2015_Laigle+_v1.1.fits')[1].data
 
     data_time = time.time()
     print "Loaded data sets in {} s".format(data_time-setup_start)
 
     #good regions mask
     #healpix map
-    region_file = '/home/ckrawiec/DES/data/sva1_gold_r1.0_goodregions_04_n4096.fits.gz'
+    region_file = '/Users/Christina/DES/sva1_gold_r1.0_goodregions_04_n4096.fits.gz'
     hpmap = hp.read_map(region_file, nest=True)
     nside = hp.npix2nside(hpmap.size)
 
@@ -103,21 +95,32 @@ def main():
     h.match(sva1_gold['ra'][gold_cosmos],sva1_gold['dec'][gold_cosmos],
             cosmos15['alpha_j2000'],cosmos15['delta_j2000'],
             radius=1./3600.,
-            file='/home/ckrawiec/DES/magnification/lbgselect/match_sva1_gold_cosmos_gals_1arcsec')
-    m1 = h.read('/home/ckrawiec/DES/magnification/lbgselect/match_sva1_gold_cosmos_gals_1arcsec')
+            file='/Users/Christina/DES/magnification/match_sva1_gold_cosmos_gals_1arcsec')
+    m1 = h.read('/Users/Christina/DES/magnification/match_sva1_gold_cosmos_gals_1arcsec')
     gold_m1, cosmos15_m1, merr = zip(*m1)
-    gold_cosmos15 = gold_cosmos[gold_m1]
+
+    gold_cosmos15 = gold_cosmos[list(gold_m1)]
 
     print "Matched COSMOS objects by ra/dec in {} s".format(time.time()-match_time)
 
     #COSMOS2015 photo-z
     #z_cosmos = 9.99 --> X-ray object, z_cosmos = 0 --> star
-    z_cosmos = cosmos15['photoz'][cosmos15_m1]
+    z_cosmos = cosmos15['photoz'][list(cosmos15_m1)]
     z0mask = (z_cosmos > 0) & (z_cosmos < 9.9)
     z3mask = (z_cosmos >= 3.) & (z_cosmos < 9.9)
     z4mask = (z_cosmos >= 4.) & (z_cosmos < 9.9)
 
     #cosmos fluxes and errors from sva1 gold
+    def maketable(datatype, mask=None, cosmos=False, filters=['g','r','i','z','Y']):
+        table = {}
+        for f in filters:
+            if cosmos:
+                table[f] = sva1_gold[datatype+'_detmodel_'+f][gold_cosmos15][mask]
+                table[f+'err'] = sva1_gold[datatype+'err_detmodel_'+f][gold_cosmos15][mask]
+            else:
+                table[f] = sva1_gold[datatype+'_detmodel_'+f][gold_no_cosmos]
+                table[f+'err'] = sva1_gold[datatype+'err_detmodel_'+f][gold_no_cosmos]
+        return table
 
     lo_z_flux_cosmos = maketable('flux', mask=(z0mask & ~z4mask), cosmos=True)
     lo_z_mag_cosmos = maketable('mag', mask=(z0mask & ~z4mask), cosmos=True)
@@ -164,13 +167,19 @@ def main():
 
     setup_time = time.time()-setup_start
     print "Total setup time took {} s".format(setup_time)
-
+    print " "
+    print "# sva1 gold, good region mask, not in COSMOS field: {}".format(len(gold_no_cosmos))
+    print "# sva1 gold, good region mask, in COSMOS field: {}".format(len(gold_cosmos15))
+    print "# sva1 gold/COSMOS2015 matched, z>4: {}".format(len(gold_cosmos15[z4mask]))
+    print "# sva1 gold/COSMOS2015 matched, 0<z<4: {}".format(len(gold_cosmos15[z0mask & ~z4mask]))
+                                                                          
+    exit()
     start = time.time()
     
     pool = Pool(processes=num_threads)
     
     n_per_process = int( len(gold_no_cosmos)/(num_threads-1) )
-    mag_chunks = [mags[i:i+n_per_process] for i in xrange(0, len(mags), n_per_process)])
+    mag_chunks = [mags[i:i+n_per_process] for i in xrange(0, len(mags), n_per_process)]
     magerr_chunks = [magerrs[i:i+n_per_process] for i in xrange(0, len(magerrs), n_per_process)]
     
     results = pool.map(nwrapper, itertools.izip(mag_chunks, magerr_chunks, itertools.repeat(hi_mags)))
@@ -182,7 +191,7 @@ def main():
         [fits.Column(name='coadd_objects_id', format='K', array=sva1_gold['coadd_objects_id'][gold_no_cosmos]),
          fits.Column(name='hi-z_density', format='D', array=final_results)]))
     prihdr = fits.Header()
-    prihdr['COMMENT'] = "Output from /home/ckrawiec/DES/magnification/lbgselect/hi-z_mag_density.py"
+    prihdr['COMMENT'] = "Output from /Users/Christina/DES/magnification/hi-z_mag_density.py"
     prihdu = fits.PrimaryHDU(header=prihdr)
     thdulist = fits.HDUList([prihdu, tbhdu])
     hdulist.writeto('hi-z_mag_density.fits')
