@@ -12,7 +12,13 @@ import os
 from astropy.io import ascii,fits
 from myutils import match
 
-num_threads = 1
+num_threads = 8
+
+sva1_gold_file = '/home/ckrawiec/DES/data/sva1_gold_detmodel_gals.fits'
+sva1_cosmos_file = '/home/ckrawiec/DES/data/sva1_coadd_cosmos.fits'
+cosmos_file = '/home/ckrawiec/COSMOS/data/COSMOS2015_Laigle+_v1.1.fits'
+region_file = '/home/ckrawiec/DES/data/sva1_gold_r1.0_goodregions_04_n4096.fits.gz'
+match_file = '/Users/Christina/DES/magnification/match_sva1_gold_cosmos_gals_1arcsec'
 
 def nwrapper(args):
     return n(*args)
@@ -59,16 +65,15 @@ def main():
     setup_start = time.time()
     
     #data sets
-    sva1_gold = fits.open('/Users/Christina/COSMOS/sva1_gold_detmodel_gals.fits')[1].data
-    sva1_cosmos = fits.open('/Users/Christina/COSMOS/sva1_coadd_cosmos.fits')[1].data
-    cosmos15 = fits.open('/Users/Christina/COSMOS/COSMOS2015_Laigle+_v1.1.fits')[1].data
+    sva1_gold = fits.open(sva1_gold_file)[1].data
+    sva1_cosmos = fits.open(sva1_cosmos_file)[1].data
+    cosmos15 = fits.open(cosmos_file)[1].data
 
     data_time = time.time()
     print "Loaded data sets in {} s".format(data_time-setup_start)
 
     #good regions mask
     #healpix map
-    region_file = '/Users/Christina/DES/sva1_gold_r1.0_goodregions_04_n4096.fits.gz'
     hpmap = hp.read_map(region_file, nest=True)
     nside = hp.npix2nside(hpmap.size)
 
@@ -95,8 +100,8 @@ def main():
     h.match(sva1_gold['ra'][gold_cosmos],sva1_gold['dec'][gold_cosmos],
             cosmos15['alpha_j2000'],cosmos15['delta_j2000'],
             radius=1./3600.,
-            file='/Users/Christina/DES/magnification/match_sva1_gold_cosmos_gals_1arcsec')
-    m1 = h.read('/Users/Christina/DES/magnification/match_sva1_gold_cosmos_gals_1arcsec')
+            file=match_file)
+    m1 = h.read(match_file)
     gold_m1, cosmos15_m1, merr = zip(*m1)
 
     gold_cosmos15 = gold_cosmos[list(gold_m1)]
@@ -173,7 +178,6 @@ def main():
     print "# sva1 gold/COSMOS2015 matched, z>4: {}".format(len(gold_cosmos15[z4mask]))
     print "# sva1 gold/COSMOS2015 matched, 0<z<4: {}".format(len(gold_cosmos15[z0mask & ~z4mask]))
                                                                           
-    exit()
     start = time.time()
     
     pool = Pool(processes=num_threads)
