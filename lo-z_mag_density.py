@@ -92,7 +92,7 @@ def main():
         return table
 
     cosmos_tab_time = time.time()
-    hi_z_mag_cosmos = maketable('mag', mask=z4mask, cosmos=True)
+    lo_z_mag_cosmos = maketable('mag', mask=(z0mask & ~z4mask), cosmos=True)
     print "Made COSMOS tables in {}s".format(time.time()-cosmos_tab_time)
     
     sva1_tab_time = time.time()
@@ -108,10 +108,10 @@ def main():
                             mag_sva1_gold['ierr'],
                             mag_sva1_gold['zerr']) )
 
-    hi_z_mags = np.array( zip(hi_z_mag_cosmos['g'],
-                            hi_z_mag_cosmos['r'],
-                            hi_z_mag_cosmos['i'],
-                            hi_z_mag_cosmos['z']) )
+    lo_z_mags = np.array( zip(lo_z_mag_cosmos['g'],
+                              lo_z_mag_cosmos['r'],
+                              lo_z_mag_cosmos['i'],
+                              lo_z_mag_cosmos['z']) )
 
     setup_time = time.time()-setup_start
     print "Total setup time took {} s".format(setup_time)
@@ -131,10 +131,9 @@ def main():
     mag_chunks = [mags[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
     magerr_chunks = [magerrs[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
 
-#    final_results = n(mags[:N_try], magerrs[:N_try], hi_z_mags)
-    results = pool.map(nwrapper, itertools.izip(mag_chunks, magerr_chunks, itertools.repeat(hi_z_mags)))
+    results = pool.map(nwrapper, itertools.izip(mag_chunks, magerr_chunks, itertools.repeat(lo_z_mags)))
     
-    final_results = np.concatenate(results)/len(hi_z_mags)
+    final_results = np.concatenate(results)/len(lo_z_mags)
 
     work_time = time.time() - start
     print "Work completed in {} s".format(work_time)
@@ -142,12 +141,12 @@ def main():
     #write results to fits file
     tbhdu = fits.BinTableHDU.from_columns(fits.ColDefs(
         [fits.Column(name='coadd_objects_id', format='K', array=sva1_gold['coadd_objects_id'][gold_no_cosmos]),
-         fits.Column(name='hi-z_density', format='D', array=final_results)]), nrows=len(final_results))
+         fits.Column(name='lo-z_density', format='D', array=final_results)]), nrows=len(final_results))
     prihdr = fits.Header()
-    prihdr['COMMENT'] = "Output from /home/ckrawiec/DES/magnification/lbgselect/hi-z_mag_density.py"
+    prihdr['COMMENT'] = "Output from /home/ckrawiec/DES/magnification/lbgselect/lo-z_mag_density.py"
     prihdu = fits.PrimaryHDU(header=prihdr)
     thdulist = fits.HDUList([prihdu, tbhdu])
-    thdulist.writeto('hi-z_mag_density.fits', clobber=True)
+    thdulist.writeto('lo-z_mag_density.fits')
     
     
 if __name__=="__main__":
