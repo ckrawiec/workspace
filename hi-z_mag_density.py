@@ -12,9 +12,21 @@ from astropy.io import ascii,fits
 
 num_threads = 2
 
-sva1_gold_file = '/home/ckrawiec/DES/data/sva1_gold_detmodel_gals.fits'
-sva1_cosmos_file = '/home/ckrawiec/DES/data/sva1_coadd_cosmos.fits'
-cosmos_file = '/home/ckrawiec/COSMOS/data/COSMOS2015_Laigle+_v1.1.fits'
+home_dir = '/Users/Christina'
+this_file = '{}/git/workspace/hi-z_mag_density.py'.format(home_dir)
+
+#will be overwritten
+output_file = '{}/DES/magnification/lbgselect/hi-z_mag_density.fits'.format(home_dir)
+
+sva1_gold_file = '{}/DES/data/sva1_gold_detmodel_gals.fits'.format(home_dir)
+sva1_cosmos_file = '{}/DES/data/sva1_coadd_cosmos.fits'.format(home_dir)
+cosmos_file = '{}/COSMOS/data/COSMOS2015_Laigle+_v1.1.fits'.format(home_dir)
+
+#indices for sva1_gold_detmodel_gals.fits
+gold_cosmos15_indices_file = '{}/DES/magnification/lbgselect/gold_cosmos15_indices.txt'.format(home_dir)
+gold_no_cosmos_indices_file = '{}/DES/magnification/lbgselect/gold_no_cosmos_indices.txt'.format(home_dir)
+cosmos15_indices_file = '{}/DES/magnification/lbgselect/cosmos15_indices.txt'.format(home_dir)
+
 
 def nwrapper(args):
     return n(*args)
@@ -52,9 +64,6 @@ def n(vals, errs, truevals):
     
     return out
 
-
-
-
 def main():
     os.environ['OMP_NUM_THREADS']=str(num_threads)
 
@@ -68,9 +77,9 @@ def main():
     data_time = time.time()
     print "Loaded data sets in {} s".format(data_time-setup_start)
 
-    gold_cosmos15 = np.loadtxt('gold_cosmos15_indices.txt', dtype=int)
-    gold_no_cosmos = np.loadtxt('gold_no_cosmos_indices.txt', dtype=int)
-    cosmos15_indices = np.loadtxt('cosmos15_indices.txt', dtype=int)
+    gold_cosmos15 = np.loadtxt(gold_cosmos15_indices_file, dtype=int)
+    gold_no_cosmos = np.loadtxt(gold_no_cosmos_indices_file, dtype=int)
+    cosmos15_indices = np.loadtxt(cosmos15_indices_file, dtype=int)
 
     #COSMOS2015 photo-z
     #z_cosmos = 9.99 --> X-ray object, z_cosmos = 0 --> star
@@ -122,7 +131,8 @@ def main():
     print "# sva1 gold/COSMOS2015 matched, 0<z<4: {}".format(len(gold_cosmos15[z0mask & ~z4mask]))
 
     start = time.time()
-    
+
+    #multiprocessing
     pool = Pool(processes=num_threads)
 
     N_try = 2000
@@ -144,10 +154,10 @@ def main():
         [fits.Column(name='coadd_objects_id', format='K', array=sva1_gold['coadd_objects_id'][gold_no_cosmos]),
          fits.Column(name='hi-z_density', format='D', array=final_results)]), nrows=len(final_results))
     prihdr = fits.Header()
-    prihdr['COMMENT'] = "Output from /home/ckrawiec/DES/magnification/lbgselect/hi-z_mag_density.py"
+    prihdr['COMMENT'] = "Output from {}".format(this_file)
     prihdu = fits.PrimaryHDU(header=prihdr)
     thdulist = fits.HDUList([prihdu, tbhdu])
-    thdulist.writeto('hi-z_mag_density.fits', clobber=True)
+    thdulist.writeto(output_file, clobber=True)
     
     
 if __name__=="__main__":
