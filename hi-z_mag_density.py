@@ -9,8 +9,9 @@ import time
 import numpy as np
 import os
 from astropy.io import ascii,fits
+import matplotlib.pyplot as plt
 
-num_threads = 2
+num_threads = 1
 
 home_dir = '/Users/Christina'
 this_file = '{}/git/workspace/hi-z_mag_density.py'.format(home_dir)
@@ -52,8 +53,7 @@ def n(vals, errs, truevals):
 
         truechunks = (truevals[i:i+ntruechunks] for i in xrange(0, len(truevals), ntruechunks))
         for truechunk in truechunks:
-            diff = np.zeros((len(chunk), len(truechunk), len(chunk[0])))
-            np.subtract(chunk[:,np.newaxis,:]-truechunk[np.newaxis,:,:], diff)
+            diff = chunk[:,np.newaxis,:]-truechunk[np.newaxis,:,:]
 
             B = -0.5 * np.sum(diff**2.*covIs[:,np.newaxis], axis=2)
             C = A[:,np.newaxis] * np.exp(B)
@@ -102,8 +102,21 @@ def main():
 
     cosmos_tab_time = time.time()
     hi_z_mag_cosmos = maketable('mag', mask=z4mask, cosmos=True)
+    lo_z_mag_cosmos = maketable('mag', mask=(z0mask & ~z4mask), cosmos=True)
+
     print "Made COSMOS tables in {}s".format(time.time()-cosmos_tab_time)
-    
+
+    hi_z_mags = np.array( zip(hi_z_mag_cosmos['g'],
+                              hi_z_mag_cosmos['r'],
+                              hi_z_mag_cosmos['i'],
+                              hi_z_mag_cosmos['z']) )
+
+    lo_z_mags = np.array( zip(lo_z_mag_cosmos['g'],
+                              lo_z_mag_cosmos['r'],
+                              lo_z_mag_cosmos['i'],
+                              lo_z_mag_cosmos['z']) )
+
+
     sva1_tab_time = time.time()
     mag_sva1_gold = maketable('mag')
     print "Made SVA1 table in {}s".format(time.time()-sva1_tab_time)
@@ -116,11 +129,6 @@ def main():
                             mag_sva1_gold['rerr'],
                             mag_sva1_gold['ierr'],
                             mag_sva1_gold['zerr']) )
-
-    hi_z_mags = np.array( zip(hi_z_mag_cosmos['g'],
-                            hi_z_mag_cosmos['r'],
-                            hi_z_mag_cosmos['i'],
-                            hi_z_mag_cosmos['z']) )
 
     setup_time = time.time()-setup_start
     print "Total setup time took {} s".format(setup_time)
@@ -135,16 +143,26 @@ def main():
     #multiprocessing
     pool = Pool(processes=num_threads)
 
-    N_try = 2000
+    N_try = 1000
     
     n_per_process = int( np.ceil(N_try/num_threads) )
     mag_chunks = [mags[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
     magerr_chunks = [magerrs[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
 
-#    final_results = n(mags[:N_try], magerrs[:N_try], hi_z_mags)
-    results = pool.map(nwrapper, itertools.izip(mag_chunks, magerr_chunks, itertools.repeat(hi_z_mags)))
+    hi_results = pool.map(nwrapper, itertools.izip(mag_chunks, magerr_chunks, itertools.repeat(hi_z_mags)))
+    lo_results = pool.map(nwrapper, itertools.izip(mag_chunks, magerr_chunks, itertools.repeat(lo_z_mags)))
     
-    final_results = np.concatenate(results)/len(hi_z_mags)
+    hi_final_results = np.concatenate(hi_results)/len(hi_z_mags)
+    lo_final_results = np.concatenate(lo_results)/len(lo_z_mags)
+
+    plt.scatter(mag_sva1_gold['r'][:N_try]-mag_sva1_gold['i'][:N_try],
+                mag_sva1_gold['g'][:N_try]-mag_sva1_gold['r'][:N_try],
+                c=hi_final_results/(hi_final_results+lo_final_results), edgecolor='none', s=4.)
+    plt.colorbar(label='density')
+    plt.xlim(-1,4)
+    plt.ylim(-1,4)
+    plt.savefig('hi-z_density_frac_mag_sva1_gold_grri')
+    plt.close()
 
     work_time = time.time() - start
     print "Work completed in {} s".format(work_time)
@@ -152,7 +170,7 @@ def main():
     #write results to fits file
     tbhdu = fits.BinTableHDU.from_columns(fits.ColDefs(
         [fits.Column(name='coadd_objects_id', format='K', array=sva1_gold['coadd_objects_id'][gold_no_cosmos]),
-         fits.Column(name='hi-z_density', format='D', array=final_results)]), nrows=len(final_results))
+         fits.Column(name='hi-z_density', format='D', array=hi_final_results)]), nrows=len(hi_final_results))
     prihdr = fits.Header()
     prihdr['COMMENT'] = "Output from {}".format(this_file)
     prihdu = fits.PrimaryHDU(header=prihdr)
