@@ -3,18 +3,19 @@ Calculate the density of low redshift objects
 in magnitude space of SVA1 GOLD galaxies
 using COSMOS photo-z's.
 """
-from multiprocessing import Pool
 import itertools
 import time
-import numpy as np
 import os
-from astropy.io import ascii,fits
+import numpy as np
 import matplotlib.pyplot as plt
+from multiprocessing import Pool
+from astropy.io import ascii,fits
+from scipy.spatial import ckdtree
 
-num_threads = 6
+num_threads = 4
 
 #how many nearest neighbors to use in likelihood sum
-k_near = 2000
+k_near = 10000
 
 home_dir = '/home/ckrawiec'
 this_file = '{}/git/workspace/lo-z_mag_density_tree.py'.format(home_dir)
@@ -82,7 +83,7 @@ def main():
     z3mask = (z_cosmos >= 3.) & (z_cosmos < 9.9)
     z4mask = (z_cosmos >= 4.) & (z_cosmos < 9.9)
 
-    #cosmos fluxes and errors from sva1 gold
+    #cosmos mags and errors from sva1 gold
     def maketable(datatype, mask=None, cosmos=False, filters=['g','r','i','z','Y']):
         table = {}
         for f in filters:
@@ -130,10 +131,11 @@ def main():
 
     start = time.time()
 
+    N_try = len(mags)
+    print "Working on {} galaxies...".format(N_try)
+
     #multiprocessing
     pool = Pool(processes=num_threads)
-
-    N_try = len(mags)
 
     n_per_process = int( np.ceil(N_try/num_threads) )
     mag_chunks = [mags[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
