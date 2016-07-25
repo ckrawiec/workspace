@@ -1,3 +1,4 @@
+#!/usr/bin/env python 
 """
 Calculate the density of low redshift objects
 in magnitude space of SVA1 GOLD galaxies
@@ -11,7 +12,7 @@ import os
 from astropy.io import ascii,fits
 import matplotlib.pyplot as plt
 
-num_threads = 6
+num_threads = 4
 
 home_dir = '/home/ckrawiec'
 this_file = '{}/git/workspace/lo-z_mag_density.py'.format(home_dir)
@@ -140,14 +141,15 @@ def main():
 
     start = time.time()
 
-    #multiprocessing
-    pool = Pool(processes=num_threads)
-
     N_try = len(mags)
+    print "Working on {} galaxies...".format(N_try)
     
     n_per_process = int( np.ceil(N_try/num_threads) )
     mag_chunks = [mags[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
     magerr_chunks = [magerrs[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
+
+    #multiprocessing
+    pool = Pool(processes=num_threads)
 
     lo_results = pool.map(nwrapper, itertools.izip(mag_chunks, magerr_chunks, itertools.repeat(lo_z_mags)))
     
