@@ -144,11 +144,12 @@ def main():
 
     start = time.time()
 
+    N_try = len(fluxs)
+    print "Working on {} galaxies...".format(N_try)
+
     #multiprocessing
     pool = Pool(processes=num_threads)
 
-    N_try = len(fluxs)
-    
     n_per_process = int( np.ceil(N_try/num_threads) )
     flux_chunks = [fluxs[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
     fluxerr_chunks = [fluxerrs[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
