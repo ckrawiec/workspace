@@ -120,9 +120,10 @@ def main():
                           flux_sva1_gold['z'],
                           flux_sva1_gold['Y']) )
     fluxerrs = np.array( zip(flux_sva1_gold['gerr'],
-                            flux_sva1_gold['rerr'],
-                            flux_sva1_gold['ierr'],
-                            flux_sva1_gold['zerr']) )
+                             flux_sva1_gold['rerr'],
+                             flux_sva1_gold['ierr'],
+                             flux_sva1_gold['zerr'],
+                             flux_sva1_gold['Yerr']) )
 
     setup_time = time.time()-setup_start
     print "Total setup time took {} s".format(setup_time)
