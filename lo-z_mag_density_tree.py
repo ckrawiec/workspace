@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Calculate the density of low redshift objects
 in magnitude space of SVA1 GOLD galaxies
