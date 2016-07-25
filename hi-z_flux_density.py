@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Calculate the density of high redshift objects
 in flux space of SVA1 GOLD galaxies
@@ -14,7 +15,7 @@ import matplotlib.pyplot as plt
 num_threads = 4
 
 home_dir = '/home/ckrawiec'
-this_file = '{}/git/workspace/hi-z_mag_density.py'.format(home_dir)
+this_file = '{}/git/workspace/hi-z_flux_density.py'.format(home_dir)
 
 #will be overwritten
 output_file = '{}/DES/magnification/lbgselect/hi-z_flux_density.fits'.format(home_dir)
