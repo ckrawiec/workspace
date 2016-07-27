@@ -157,6 +157,7 @@ def main():
          fits.Column(name='lo-z_density', format='D', array=lo_final_results)]), nrows=len(lo_final_results))
     prihdr = fits.Header()
     prihdr['COMMENT'] = "Output from {}".format(this_file)
+    prihdr['NNEIGHBORS'] = (str(k_near), 'number of nearest neighbors used by kd-tree')
     prihdu = fits.PrimaryHDU(header=prihdr)
     thdulist = fits.HDUList([prihdu, tbhdu])
     thdulist.writeto(output_file, clobber=True)
