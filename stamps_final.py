@@ -1,9 +1,11 @@
 import galsim
 import os
+import sys
 import numpy as np
 import math
 import argparse
 from astropy.io import fits
+from timeit import default_timer as timer
 
 #Moffat PSF with ellipticity e2
 #Galaxies have bulge and disk components
@@ -101,12 +103,12 @@ class BobsEDist:
         return e1,e2
     
 def main():
+    start = timer()
 
     p = get_params()
 
-#can't output anything but noise_var
-#    print "Parameters chosen for postage stamp sims:"
-#    print p
+    sys.stderr.write("Parameters chosen for postage stamp sims: \n")
+    sys.stderr.write("{}\n".format(p))
     
     rng = galsim.UniformDeviate(p.random_seed)
  
@@ -144,7 +146,10 @@ def main():
         noise_var = test_image.addNoiseSNR(noise,
                                            p.gal_snr_min,
                                            preserve_flux=True)
-        print noise_var
+
+        f = open(os.path.join(p.file_dir,'noise_var_{}.txt'.format(p.id)),'w')
+        f.write(str(noise_var))
+        f.close()
 
         #final noise
         noise = galsim.GaussianNoise(rng, sigma=np.sqrt(noise_var))
@@ -194,9 +199,10 @@ def main():
                 #Apply a shift in bulge center within circle of radius hlr
                 theta = rng() * 2. * np.pi
                 r = rng() * hlr
-                dx = r * np.cos(theta)
-                dy = r * np.sin(theta)
-                this_bulge = this_bulge.shift(dx,dy)
+
+                dxb = r * np.cos(theta) + dx
+                dyb = r * np.sin(theta) + dy
+                this_bulge = this_bulge.shift(dxb,dyb)
 
                 this_gal = bulge_frac*this_bulge + (1-bulge_frac)*this_disk
                 this_gal = this_gal.withFlux(flux)
@@ -221,6 +227,9 @@ def main():
         gal_image.write(gal_file)
         psf_image.write(psf_file)
 
+    end= timer()
+    sys.stderr.write("Images created in {} sec\n".format(end-start))
+            
 
 if __name__ == "__main__":
     main()
