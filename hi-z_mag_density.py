@@ -1,3 +1,4 @@
+#!/usr/bin/env python  
 """
 Calculate the density of high redshift objects
 in magnitude space of SVA1 GOLD galaxies
@@ -11,7 +12,7 @@ import os
 from astropy.io import ascii,fits
 import matplotlib.pyplot as plt
 
-num_threads = 6
+num_threads = 4
 
 home_dir = '/home/ckrawiec'
 this_file = '{}/git/workspace/hi-z_mag_density.py'.format(home_dir)
