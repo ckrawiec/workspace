@@ -17,7 +17,7 @@ home_dir = '/home/ckrawiec'
 this_file = '{}/git/workspace/hi-z_mag_density.py'.format(home_dir)
 
 #will be overwritten
-output_file = '{}/DES/magnification/lbgselect/hi-z_mag_density.fits'.format(home_dir)
+output_file = '{}/DES/magnification/lbgselect/hi-z_mag_probability.fits'.format(home_dir)
 
 sva1_gold_file = '{}/DES/data/sva1_gold_detmodel_gals.fits'.format(home_dir)
 sva1_cosmos_file = '{}/DES/data/sva1_coadd_cosmos.fits'.format(home_dir)
@@ -29,10 +29,10 @@ gold_no_cosmos_indices_file = '{}/DES/magnification/lbgselect/gold_no_cosmos_ind
 cosmos15_indices_file = '{}/DES/magnification/lbgselect/cosmos15_indices.txt'.format(home_dir)
 
 
-def nwrapper(args):
-    return n(*args)
+def pwrapper(args):
+    return p(*args)
 
-def n(vals, errs, truevals):
+def p(vals, errs, truevals):
     """
     sum the gaussian likelihoods L(vals|truevals) over truevals using the errs on vals
     vals, errs, and truevals are lists or arrays of data/error vectors 
@@ -92,6 +92,8 @@ def main():
     z3mask = (z_cosmos >= 3.) & (z_cosmos < 9.9)
     z4mask = (z_cosmos >= 4.) & (z_cosmos < 9.9)
 
+    Ntot = len(z0mask & ~z4mask) + len(z4mask)
+    
     #cosmos fluxes and errors from sva1 gold
     def maketable(datatype, mask=None, cosmos=False, filters=['g','r','i','z','Y']):
         table = {}
@@ -137,6 +139,7 @@ def main():
     print "# sva1 gold, good region mask, in COSMOS field: {}".format(len(gold_cosmos15))
     print "# sva1 gold/COSMOS2015 matched, z>4: {}".format(len(gold_cosmos15[z4mask]))
     print "# sva1 gold/COSMOS2015 matched, 0<z<4: {}".format(len(gold_cosmos15[z0mask & ~z4mask]))
+    print "# sva1 gold/COSMOS2015 matched, z>0: {}".format(Ntot)
 
     start = time.time()
 
@@ -149,9 +152,9 @@ def main():
     mag_chunks = [mags[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
     magerr_chunks = [magerrs[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
 
-    hi_results = pool.map(nwrapper, itertools.izip(mag_chunks, magerr_chunks, itertools.repeat(hi_z_mags)))
+    hi_results = pool.map(pwrapper, itertools.izip(mag_chunks, magerr_chunks, itertools.repeat(hi_z_mags)))
     
-    hi_final_results = np.concatenate(hi_results)/len(hi_z_mags)
+    hi_final_results = np.concatenate(hi_results)/Ntot
 
     work_time = time.time() - start
     print "Work completed in {} s".format(work_time)
@@ -159,7 +162,7 @@ def main():
     #write results to fits file
     tbhdu = fits.BinTableHDU.from_columns(fits.ColDefs(
         [fits.Column(name='coadd_objects_id', format='K', array=sva1_gold['coadd_objects_id'][gold_no_cosmos]),
-         fits.Column(name='hi-z_density', format='D', array=hi_final_results)]), nrows=len(hi_final_results))
+         fits.Column(name='hi-z_prob', format='D', array=hi_final_results)]), nrows=len(hi_final_results))
     prihdr = fits.Header()
     prihdr['COMMENT'] = "Output from {}".format(this_file)
     prihdu = fits.PrimaryHDU(header=prihdr)
