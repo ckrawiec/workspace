@@ -93,7 +93,7 @@ def main():
     z3mask = (z_cosmos >= 3.) & (z_cosmos < 9.9)
     z4mask = (z_cosmos >= 4.) & (z_cosmos < 9.9)
 
-    Ntot = len(z0mask & ~z4mask) + len(z4mask)
+    Ntot = len(z_cosmos[z0mask & ~z4mask]) + len(z_cosmos[z4mask])
     
     #cosmos fluxes and errors from sva1 gold
     def maketable(datatype, mask=None, cosmos=False, filters=['g','r','i','z','Y']):
