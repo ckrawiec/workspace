@@ -7,10 +7,11 @@ groups using COSMOS photo-z's.
 from multiprocessing import Pool
 import itertools
 import time
-import numpy as np
 import os
-from astropy.io import ascii,fits
+import numpy as np
 import matplotlib.pyplot as plt
+from astropy.io import ascii,fits
+from scipy.spatial import ckdtree
 
 num_threads = 4
 
@@ -21,14 +22,7 @@ group = 'lo' #lo (0<z<4) or hi (z>4)
 ptype = 'tree' #full or tree
 data_type = 'mag' #mag or flux
 
-if ptype='tree':
-    pfunc=ptree
-elif ptype='full':
-    pfunc=p
-else:
-    raise ValueError('Choose ptype=\'full\' or \'tree\'')
-
-k_near = 20000 #nearest neighbors if ptype=tree
+k_near = 10000 #nearest neighbors if ptype=tree
 
 #will be overwritten
 output_file = '{}/DES/magnification/lbgselect/{}-z_{}_probability_test.fits'.format(home_dir, group, data_type)
@@ -44,8 +38,13 @@ cosmos15_indices_file = '{}/DES/magnification/lbgselect/cosmos15_indices.txt'.fo
 
 
 def pwrapper(args):
-    return pfunc(*args)
-
+    if ptype=='tree':
+        return ptree(*args)
+    elif ptype=='full':
+        return p(*args)
+    else:
+        raise ValueError('Choose ptype=\'full\' or \'tree\'')
+                
 def p(vals, errs, truevals):
     """
     sum the gaussian likelihoods L(vals|truevals) over truevals using the errs on vals
@@ -136,13 +135,13 @@ def main():
                 table[f] = sva1_gold[data_type+'_detmodel_'+f][gold_cosmos15][mask]
                 table[f+'err'] = sva1_gold[data_type+'err_detmodel_'+f][gold_cosmos15][mask]
             else:
-                table[f] = sva1_gold[datatype+'_detmodel_'+f][gold_no_cosmos]
+                table[f] = sva1_gold[data_type+'_detmodel_'+f][gold_no_cosmos]
                 table[f+'err'] = sva1_gold[data_type+'err_detmodel_'+f][gold_no_cosmos]
         return table
 
-    if group='hi':
+    if group=='hi':
         group_mask=z4mask
-    elif group='lo':
+    elif group=='lo':
         group_mask=(z0mask & ~z4mask)
     else:
         raise ValueError('Unknown group name')
@@ -210,7 +209,7 @@ def main():
          fits.Column(name=group+'-z_prob', format='D', array=final_results)]), nrows=len(final_results))
     prihdr = fits.Header()
     prihdr['COMMENT'] = "Output from {}".format(this_file)
-    if ptype='tree':
+    if ptype=='tree':
         prihdr['NTREE'] = str(k_near)
     prihdu = fits.PrimaryHDU(header=prihdr)
     thdulist = fits.HDUList([prihdu, tbhdu])
