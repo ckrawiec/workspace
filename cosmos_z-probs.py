@@ -18,8 +18,8 @@ num_threads = 4
 home_dir = '/home/ckrawiec'
 this_file = '{}/git/workspace/cosmos_z-probs.py'.format(home_dir)
 
-group = 'lo' #lo (0<z<4) or hi (z>4)
-ptype = 'tree' #full or tree
+group = 'hi' #lo (0<z<4) or hi (z>4)
+ptype = 'full' #full or tree
 data_type = 'mag' #mag or flux
 
 k_near = 10000 #nearest neighbors if ptype=tree
@@ -188,10 +188,11 @@ def main():
     start = time.time()
 
     #multiprocessing
+    N_try = len(data)
+    print "Working on {} galaxies...".format(N_try)
+    
     pool = Pool(processes=num_threads)
 
-    N_try = len(data)
-    
     n_per_process = int( np.ceil(N_try/num_threads) )
     data_chunks = [data[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
     data_err_chunks = [data_errs[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
