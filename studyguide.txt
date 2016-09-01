@@ -1,0 +1,136 @@
+Why do I care?
+Dark energy is one of the great mysteries of the universe
+What is it?
+-the universe is accelerating and we do not know why
+-cosmological constant
+How can we learn about dark energy?
+-growth of structure over time
+-w
+How can we measure evolution of matter?
+-use gravitational lensing to measure masses
+-using different redshift bins can give tomography
+-correlation functions carry information about?
+	     -matter density power spectrum (references??)
+
+What else can we learn?
+-cosmology from correlation functions
+-galaxy bias?
+
+How to measure mass from lensing?
+-surface mass density
+-shear (read some shear papers)
+-kappa from magnification
+
+What is magnification?
+-lensing changes source flux and size
+-surface brightness is conserved
+-number of sources at given flux is changed
+	-observed luminosity function depends on slope of intrinsic luminosity function
+
+What should we use as lenses and sources?
+-Want cleanly separated samples
+      -no physical correlations, only lensing
+-want a large sample so S/N is good
+
+Why use LBGs?
+-the lyman break makes these galaxies easier to select
+-very high redshift (z>4)
+-will be cleanly separated from lens sample
+-this allows us to use ALL low redshift galaxies
+
+What about lenses?
+-use red galaxies because they have well-determined redshift
+     -red sequence, algorithm
+
+What problems could I have?
+-some red galaxies are cluster members
+      -high density of low-z, if they get into high-z sample=bad
+-how close are neighbors?
+     -will background members be magnified by neighbors?
+     -does stacking get rid of this effect? (averaging)
+
+How to select LBGs?
+-Use their distinct colors
+-compare galaxies to known high-z galaxies
+-have another check on fluxes (g flux cutoff for example)?
+-well-studied luminosity functions can give check on number density found?
+
+What problems could I have?
+-low-z galaxies have 4000A break that can look like Lyman break
+-noise can cause scatter in flux space
+-quasars? (low number density - calculate)
+
+
+#Cosmology
+-w
+-power spectra
+-omega matter, sigma 8
+
+#Dark Energy
+
+
+#Weak Lensing
+-shear
+-using it to study dark energy
+
+#Magnification
+
+#Dark Energy Survey
+
+#Lyman Break Galaxies
+
+
+plots/calculations I can make:
+-S/N of magnification as functions of:
+     -lens and source redshifts
+     -lens mass
+     -distance from lens
+
+-number density of lenses and srcs
+
+-number densities of possible interlopers
+	-stars
+	-quasars
+
+-luminosity function of chosen srcs
+	-compare to theory of LBGs
+
+-Nsrc as function of distance from lens
+      	-for different annuli widths
+
+
+for group separation using COSMOS:
+    -calculating P(group|data)
+    	- how to determine group? buffers in redshift?
+	  -how wide are z groups? right up against each other?
+	  -do i need to do this for each lens?
+	      -lens redshifts will range from 0.2-0.8
+
+    -what will be my cutoff for P(group|data)?
+    	  -will this be a combination of all three P(groups)?
+	  -or just cutoff on single group P?
+	  -some other checks on groups
+	  	-photo-z from photo-z groups? (BAD AT HIGH-z, but maybe for interloper groups)
+		-check on fluxes? (for example g MUST BE < r,i,z,Y or below some cutoff completely (depends on noise))
+		-check it is in previously calculated (Davies et al 13 was it?) color space
+
+    -can I calculate level of contamination from other groups?
+    	 -use Balrog to see how fluxes of each group change?
+	      -in other words, maybe do P determination on truth groups, then P on detected groups, calculate fractions on each
+	      	  -only on detected ones?
+
+    -can use Balrog to weight number densities in each annulus depending on ability to detect them on patch of sky
+    	 -depends on flux?
+	 -
+
+    -estimator
+
+
+problems?
+	-if use BFD fluxes, how does Balrog usage change
+	    -detection still ok, but change in measured flux not helpful?
+	    -BFD uses fixed aperture, SE does not -well, maybe can use fixed aperture fluxes from SE? aren't they reported?
+
+today:
+write out estimator with own math, does this depend on magnitude
+what is measurement and can you account for 
