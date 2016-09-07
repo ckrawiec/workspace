@@ -7,6 +7,7 @@ How can we learn about dark energy?
 -growth of structure over time
 -w
 How can we measure evolution of matter?
+-mass distribution of dark matter halos
 -use gravitational lensing to measure masses
 -using different redshift bins can give tomography
 -correlation functions carry information about?
@@ -36,7 +37,18 @@ Why use LBGs?
 -the lyman break makes these galaxies easier to select
 -very high redshift (z>4)
 -will be cleanly separated from lens sample
--this allows us to use ALL low redshift galaxies
+-this allows us to use ALL low redshift galaxies (higher z lenses!)
+-well-studied luminosity functions = good determination of alpha for optimal weighting
+-narrow redshift range, well determined by colors
+-high lensing efficiency (comes from high-z)
+
+What is an LBG?
+-lyman break at 912A
+-radiation shorter than this wavelength is absorbed by neutral hydrogen
+-neutral hydrogen is in star-forming regions of galaxies
+-LBGs are star-forming galaxies
+-they are at high redshift, so the lyman break is detectable by ground or space telescopes
+      -912A is far UV and would be blocked by Earth's atmosphere
 
 What about lenses?
 -use red galaxies because they have well-determined redshift
@@ -45,6 +57,7 @@ What about lenses?
 What problems could I have?
 -some red galaxies are cluster members
       -high density of low-z, if they get into high-z sample=bad
+      -could obscure faint sources - balrog?
 -how close are neighbors?
      -will background members be magnified by neighbors?
      -does stacking get rid of this effect? (averaging)
@@ -55,11 +68,27 @@ How to select LBGs?
 -have another check on fluxes (g flux cutoff for example)?
 -well-studied luminosity functions can give check on number density found?
 
+What is COSMOS
+
+
 What problems could I have?
 -low-z galaxies have 4000A break that can look like Lyman break
 -noise can cause scatter in flux space
 -quasars? (low number density - calculate)
 
+Which estimator to use?
+-can calculate correlation function
+     -compare with theory
+     -check as function of luminosity
+     -galaxy-galaxy lensing
+-mu estimator
+    -compare with theory
+    -can use for mass mapping
+    -don't need to calculate errors using jackknife or bootstrap
+    
+
+Checks
+-negative correlation that is created by lensing for faint LBGs can ONLY be explained by lensing, if exists, good sign that sample is separated (hild et al 2009b discussion)
 
 #Cosmology
 -w
@@ -71,6 +100,9 @@ What problems could I have?
 
 #Weak Lensing
 -shear
+-shear vs mag S/N,
+       -shear has 0 expectation value, multiplicative bias
+       -can't measure shapes well at high z
 -using it to study dark energy
 
 #Magnification
@@ -131,6 +163,22 @@ problems?
 	    -detection still ok, but change in measured flux not helpful?
 	    -BFD uses fixed aperture, SE does not -well, maybe can use fixed aperture fluxes from SE? aren't they reported?
 
+BFD approach
+    -uses fluxes instead of number densities
+
+
 today:
 write out estimator with own math, does this depend on magnitude
-what is measurement and can you account for 
+what is measurement and can you account for varying survey depth and contamination
+
+
+
+Reading:
+Ford 2012 & 2014 = magnification using LBGs and galaxy groups
+Rozo & Schmidt 2010 = combining shear and magnification
+Menard et al 2010 = wavelength dependence of magnification can probe intergalactic dust extinction
+Van Waerbeke 2010 = magnification as direct way to measure galaxy bias
+Narayan 1989 = number density under magnification
+Broadhurst et al 1995 = "
+Menard & Bartelmann 2002 = weighting for correlation estimator
+Ford et al 2012 = Magnification by galaxy group dark matter halos
