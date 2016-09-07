@@ -1,4 +1,5 @@
 import numpy as np
+from astropy.io import fits
 
 def match(list1, list2):
     """
@@ -43,3 +44,34 @@ def match(list1, list2):
             break
 
         return index1, index2
+
+def fitsstack(table_list):
+    """
+    Arguments:
+        table_list - list of fits file names
+        
+    Returns:
+        combined HDU using data from HDU 1
+    """
+    nrows=[]
+    data=[]
+
+    for table in table_list:
+        t = fits.open(table)
+        data.append(t[1].data)
+        nrows.append(t[1].data.shape[0])
+        
+    hdu = fits.BinTableHDU.from_columns(t[1].columns, nrows=sum(nrows), fill=True)
+
+    for colname in t[1].columns.names:
+        for i in range(len(data)):
+            hdu.data[colname][sum(nrows[:i]):sum(nrows[:i+1])] = data[i][colname]
+    
+    check=0
+    for i in range(len(data)):
+        check.append(hdu.data[colname][sum(nrows[:i])]==data[i][colname][0])
+    if np.all(check):
+        return hdu
+    else:
+        raise ValueError('Something went wrong')
+
