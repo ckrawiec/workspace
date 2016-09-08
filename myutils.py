@@ -21,27 +21,23 @@ def match(list1, list2):
         return None
 
     else:
-        while i < len(list1):
-            while j < len(list2):
+        while ((j < len(list2)) & (i < len(list1))):
 
-                if list2[j]==list1[i]:
-                    index1.append(i)
-                    index2.append(j)
+            if list2[j]==list1[i]:
+                index1.append(i)
+                index2.append(j)
                 
-                    i+=1
-                    j+=1
-                    continue
-
-                else:
-                    
-                    if list2[j] < list1[i]:
-                        j+=1
-                        continue
+                i+=1
+                j+=1
+                continue
+            
+            if list2[j] < list1[i]:
+                j+=1
+                continue
                 
-                    if list2[j] > list1[i]:
-                        i+=1
-                        continue
-            break
+            if list2[j] > list1[i]:
+                i+=1
+                continue
 
         return index1, index2
 
@@ -67,7 +63,7 @@ def fitsstack(table_list):
         for i in range(len(data)):
             hdu.data[colname][sum(nrows[:i]):sum(nrows[:i+1])] = data[i][colname]
     
-    check=0
+    check=[]
     for i in range(len(data)):
         check.append(hdu.data[colname][sum(nrows[:i])]==data[i][colname][0])
     if np.all(check):
