@@ -1,4 +1,5 @@
 Why do I care?
+
 Dark energy is one of the great mysteries of the universe
 What is it?
 -the universe is accelerating and we do not know why
@@ -6,6 +7,7 @@ What is it?
 How can we learn about dark energy?
 -growth of structure over time
 -w
+
 How can we measure evolution of matter?
 -mass distribution of dark matter halos
 -use gravitational lensing to measure masses
@@ -17,16 +19,52 @@ What else can we learn?
 -cosmology from correlation functions
 -galaxy bias?
 
+How does lensing work?
+-surface brightness is conserved 
+-deflection described by null geodesics
+-weak lens if potential/c^2 <<1
+-the distortion of images is described by a jacobian matrix
+-convergence (isotropic) and shear matrix (anisotropic)
+
 How to measure mass from lensing?
 -surface mass density
+	 -projected mass along line of sight
 -shear (read some shear papers)
 -kappa from magnification
+-for WL most galaxies have bulge fractions < 0.5
+
+What is shear?
+-systematics: PSF anisotropy
+-shape distortions
+-ellipticity distribution has rms 0.3-0.4 (B. Casaponsa et al 2013)
+-reduced shear = gamma/(1-kappa), this represents the shape change while ignoring size
+-reduced shear is invariant under transformation of distortion matrix by scalar multiple (mass-sheet degeneracy)
 
 What is magnification?
+-quanitified by inverse of determinant of jacobian mu=1/detA
+-eigenvalues of M=A^-1 matrix (tangential and radial mu) become infinite at critical lines (lens plane), which correspond to caustics (source plane)
+-in the limit of the whole sky <mu>=1
 -lensing changes source flux and size
--surface brightness is conserved
+	 -competing factors: depending on flux, can be brighter but less numerous
+	 -possible for effects to cancel out
 -number of sources at given flux is changed
 	-observed luminosity function depends on slope of intrinsic luminosity function
+
+
+Shear vs. Magnification
+-magnification provides a cross-check to shear because they have different systematics (PSF anisotropy vs. photometric calibrations)
+-magnification can probe higher redshifts than shear (check)
+-# of source galaxies with accurate magnitudes and photo-zs is greater than # of sources with accurate shapes, but magnification measurements less powerful for given sample
+-dependence on redshift for cosmological constraints is different for magnitude and shear
+-magnification is now possible because of deeper surveys and stable photometry
+-ellipticity distribution has rms 0.3-0.4, size distribution is log-normal with sigma*ln R ~ 0.3 (bright) ~ 0.5 (faint) where R is Petrosian half light radius (B. Casaponsa et al 2013)
+-need large sample to overcome intrinsic scatter
+-need consistently small PSF that does not destroy size info (BCas13)
+-magnification and distortion have different radial dependencies on spatial distriubtion of matter - lift mass-sheet degeneracy (BCas13)
+-this can reduce uncertainties on reconstruction of distribution of matter
+-power spectrum of (mu-1) is 4*P_k(l) therefore cosmological constraints could be made independent of shear (BCas13)
+-constraints on sigma8 + omega_M can be improved by ~40% using magnification (vanW10)
+
 
 What should we use as lenses and sources?
 -Want cleanly separated samples
@@ -41,6 +79,7 @@ Why use LBGs?
 -well-studied luminosity functions = good determination of alpha for optimal weighting
 -narrow redshift range, well determined by colors
 -high lensing efficiency (comes from high-z)
+-LBGs can be used for DM halo studies (clustering)
 
 What is an LBG?
 -lyman break at 912A
@@ -62,19 +101,32 @@ What problems could I have?
      -will background members be magnified by neighbors?
      -does stacking get rid of this effect? (averaging)
 
+Systematics?
+-errors in magnitude/flux measurement
+	-accuracy for faint objects
+-local seeing can produce variation in apparent galaxy density
+-dust extinction - could be subdominant to signal
+-redshift overlap (shouldn't be a problem here)
+-estimation of density of faint sources around bright extended objects can be biased; induced by uncertainties in sky subtractions (Mandelbaum et al 2005) -> mask
+-obscuration
+
 How to select LBGs?
 -Use their distinct colors
+     -u-dropouts = z>3
+     -g-dropouts = z>4
+     -r-dropouts = z>5
 -compare galaxies to known high-z galaxies
 -have another check on fluxes (g flux cutoff for example)?
 -well-studied luminosity functions can give check on number density found?
 
-What is COSMOS
+What is COSMOS?
 
 
 What problems could I have?
--low-z galaxies have 4000A break that can look like Lyman break
+-low-z galaxies have 4000A break (old ones, from heavy metal absorption) that can look like Lyman break
 -noise can cause scatter in flux space
 -quasars? (low number density - calculate)
+-for classic alpha(magnitude) way, our window in magnitude is so small, it would not vary
 
 Which estimator to use?
 -can calculate correlation function
@@ -166,19 +218,27 @@ problems?
 BFD approach
     -uses fluxes instead of number densities
 
-
-today:
-write out estimator with own math, does this depend on magnitude
-what is measurement and can you account for varying survey depth and contamination
-
-
+Questions:
+-what are "coherent" shears and magnifications
 
 Reading:
 Ford 2012 & 2014 = magnification using LBGs and galaxy groups
 Rozo & Schmidt 2010 = combining shear and magnification
 Menard et al 2010 = wavelength dependence of magnification can probe intergalactic dust extinction
-Van Waerbeke 2010 = magnification as direct way to measure galaxy bias
+Van Waerbeke 2010 = magnification as direct way to measure galaxy bias, improve contstraints
 Narayan 1989 = number density under magnification
 Broadhurst et al 1995 = "
 Menard & Bartelmann 2002 = weighting for correlation estimator
 Ford et al 2012 = Magnification by galaxy group dark matter halos
+Hoekstra et al 2002 = galaxy bias
+Simon et al 2007 = galaxy bias
+Guhathakurta et al 1990 = LBG selection
+Steidel et al 1991 = LBG selection
+Sawicki & Thompson 2006 = LBG LF
+Bouwens & Illingworth 2007 = LBG LF
+Van der Burg et al 2010 = LBG LF
+Landy & Szalay 1993 = correlation function estimator, bias and variance
+van Waerbeke 2009
+Bartelmann & Schneider 2001 = all of GL, but also Limber's approximation (3D to 2D correlation function)
+Schneider et al 2014
+Mandelbaum et al 2005
