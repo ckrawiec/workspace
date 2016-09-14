@@ -64,7 +64,7 @@ Shear vs. Magnification
 -this can reduce uncertainties on reconstruction of distribution of matter
 -power spectrum of (mu-1) is 4*P_k(l) therefore cosmological constraints could be made independent of shear (BCas13)
 -constraints on sigma8 + omega_M can be improved by ~40% using magnification (vanW10)
-
+-size magnification - sizes usually come for free with shear measurements
 
 What should we use as lenses and sources?
 -Want cleanly separated samples
@@ -102,6 +102,7 @@ What problems could I have?
      -does stacking get rid of this effect? (averaging)
 
 Systematics?
+-large PSFs remove size information (multiplicative bias - larger than for shear BCas13)
 -errors in magnitude/flux measurement
 	-accuracy for faint objects
 -local seeing can produce variation in apparent galaxy density
@@ -224,10 +225,13 @@ Questions:
 Reading:
 Ford 2012 & 2014 = magnification using LBGs and galaxy groups
 Rozo & Schmidt 2010 = combining shear and magnification
+Schmidt et al 2012 = revised version of KSB method
 Menard et al 2010 = wavelength dependence of magnification can probe intergalactic dust extinction
 Van Waerbeke 2010 = magnification as direct way to measure galaxy bias, improve contstraints
 Narayan 1989 = number density under magnification
 Broadhurst et al 1995 = "
+Broadhurst, Taylor & Peacock 1995 = number counts
+Hildebrandt, van Waerbeke & Erben 2009 = number counts
 Menard & Bartelmann 2002 = weighting for correlation estimator
 Ford et al 2012 = Magnification by galaxy group dark matter halos
 Hoekstra et al 2002 = galaxy bias
@@ -242,3 +246,5 @@ van Waerbeke 2009
 Bartelmann & Schneider 2001 = all of GL, but also Limber's approximation (3D to 2D correlation function)
 Schneider et al 2014
 Mandelbaum et al 2005
+Amara & Refregier (2007) = systematic errors needed for accurate determination of cosmological parameters
+Kitching, Taylor, & Heavens (2008b) = "
