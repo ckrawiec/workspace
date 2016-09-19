@@ -24,11 +24,8 @@ usage = "usage: python zprobability.py <data table> <truth table> <output>"
 
 num_threads = 4
 
-home_dir = '/home/ckrawiec'
-this_file = '{}/git/workspace/cosmos_z-probs.py'.format(home_dir)
-
 ptype = 'tree' #full or tree integration
-data_type = 'FLUX' #mag or flux
+data_type = 'FLUX' #MAG or FLUX
 
 filters = ['G','R','I','Z','Y']
 
