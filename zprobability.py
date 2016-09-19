@@ -1,14 +1,17 @@
-"""
+usage = """
 Calculate the probability that
 fluxes of input galaxies belong to 
-certain redshifts using photo-z's.
+certain redshift ranges using photo-z's.
 
 usage: python zprobability.py <data table> <truth table> <output>
 
 <data table> must include the following:
     -SExtractor flux and error outputs
+<truth table> must include the following:
+    -SExtractor flux and error outputs
+    -column named 'photoz'
 
-<output> will be a binary fits table
+<output> will be a binary fits table and will overwrite existing file
 """
 import itertools
 import time
@@ -19,8 +22,6 @@ import matplotlib.pyplot as plt
 from multiprocessing import Pool
 from astropy.io import ascii,fits
 from scipy.spatial import ckdtree
-
-usage = "usage: python zprobability.py <data table> <truth table> <output>"
 
 num_threads = 4
 
@@ -38,7 +39,11 @@ k_near = 10000 #nearest neighbors if ptype=tree
 
 def pwrapper(args):
     if ptype=='tree':
-        return ptree(*args)
+        #if truth array shorter than k_near, just do full integration
+        if len(args[-1]) > k_near:
+            return ptree(*args)
+        else:
+            return p(*args)
     elif ptype=='full':
         return p(*args)
     else:
@@ -77,23 +82,24 @@ def p(vals, errs, truevals):
     return out
 
 def ptree(vals, errs, truevals, knear=k_near):
-        truetree = ckdtree.cKDTree(truevals)
 
-        out = []
-        for val, err in zip(vals, errs):
-            dnear, inear = truetree.query(val, k=knear)
-            truearr = truetree.data[inear]
+    truetree = ckdtree.cKDTree(truevals)
+    
+    out = []
+    for val, err in zip(vals, errs):
+        dnear, inear = truetree.query(val, k=knear)
+        truearr = truetree.data[inear]
+        
+        covI = 1./err**2.
+        A = 1./np.sqrt( (2.*np.pi)**len(val)  * np.prod(err**2.) )
+        
+        diff = val-truearr
+        B = -0.5 * np.sum(diff**2.*covI, axis=1)
+        C = A * np.exp(B)
             
-            covI = 1./err**2.
-            A = 1./np.sqrt( (2.*np.pi)**len(val)  * np.prod(err**2.) )
+        out.append(np.sum(C) * len(truevals)/len(truearr))
             
-            diff = val-truearr
-            B = -0.5 * np.sum(diff**2.*covI, axis=1)
-            C = A * np.exp(B)
-            
-            out.append(np.sum(C) * len(truevals)/len(truearr))
-            
-        return np.array(out)
+    return np.array(out)
 
 def main(args):
     if len(args)<4:
@@ -137,26 +143,25 @@ def main(args):
     P_dict = {}
     N_tot = 0
 
+    #multiprocessing
+    pool = Pool(processes=num_threads)
+
     for z_group in z_groups:
         z_mask = (z >= np.min(z_group)) & (z < np.max(z_group))
 
-        template_zip = np.array( zip( *[template_data[data_type+'_detmodel_'+f][mask] for f in filters] ) )
+        template_zip = np.array( zip( *[templates[data_type+'_detmodel_'+f][z_mask] for f in filters] ) )
         N_tot += len(template_zip)
     
         start = time.time()
         
-        #multiprocessing
-
         #for testing
         N_try = len(data_zip)
-        print "Working on {} galaxies, ...".format(N_try)
-    
-        pool = Pool(processes=num_threads)
+        print "Working on {} galaxies ...".format(N_try)
 
         n_per_process = int( np.ceil(N_try/num_threads) )
         data_chunks = [data_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
         err_chunks = [err_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
-    
+
         results = pool.map(pwrapper, itertools.izip(data_chunks, err_chunks, itertools.repeat(template_zip)))
         
         P_dict[str(z_group)] = np.concatenate(results)
@@ -168,20 +173,20 @@ def main(args):
     #write results to fits file
     col_defs = [fits.Column(name='coadd_objects_id', format='K', array=data_ids)]
 
-    P_norm = np.zeros(len(data_zip))
+    P_norm = np.zeros(N_try)
     for k in P_dict.keys():
         P_norm += P_dict[k]
     for z_group in z_groups:
         col_defs.append(fits.Column(name='P'+str(z_group), format='D', array=P_dict[str(z_group)]/P_norm))
 
-    tb_hdu = fits.BinTableHDU.from_columns(fits.ColDefs(col_defs, nrows=len(data_ids)))
+    tb_hdu = fits.BinTableHDU.from_columns(fits.ColDefs(col_defs), nrows=N_try)
     pri_hdr = fits.Header()
-    pri_hdr['COMMENT'] = "Bayesian redshift probabilities for data in {} using photo-zs of templates from {}. Data vectors/errors were comprised of {}(ERR)_DETMODEL_% for % in {}. Columns reported here are \'P[zmin,zmax]\'".format(data_file, template_file, ptype, filters)
+    pri_hdr['COMMENT'] = "Bayesian redshift probabilities for data in {} using photo-zs of templates from {}. Data vectors/errors were comprised of {}(ERR)_DETMODEL_% for % in {}. Columns reported here are \'P[zmin, zmax]\'".format(data_file, template_file, data_type, filters)
     if ptype=='tree':
         pri_hdr['NTREE'] = str(k_near)
     pri_hdu = fits.PrimaryHDU(header=pri_hdr)
     hdu_list = fits.HDUList([pri_hdu, tb_hdu])
-    hdu_list.writeto(output_file)
+    hdu_list.writeto(output_file, clobber=True)
     
     now = time.strftime("%Y-%m-%d %H:%M")
     print "#"+now
