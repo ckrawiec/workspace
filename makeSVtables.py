@@ -10,7 +10,7 @@ cosmos_ind = np.loadtxt('/home/ckrawiec/DES/magnification/lbgselect/cosmos15_ind
 
 new_sv = sva1_gold[sv_no_cosmos]
 new_cosmos = sva1_gold[sv_cosmos] 
-new_cosmos.add_column(Column(name='photoz', data=cosmos[cosmos_ind]))
+new_cosmos.add_column(Column(name='photoz', data=cosmos['photoz'][cosmos_ind]))
 
 new_sv.write('/home/ckrawiec/DES/data/sva1_gold_detmodel_MC1_no_cosmos.fits')
 new_cosmos.write('/home/ckrawiec/DES/data/sva1_gold_detmodel_MC1_cosmos.fits')
