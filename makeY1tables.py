@@ -1,29 +1,42 @@
 import numpy as np
 import glob
-from astropy.table import Table, vstack
+from astropy.table import Table, Column, vstack
 
-y1a1_gold_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_flux_detmodel_MC1_*')
+def stackwrite(flist, output_file):
+    tlist = [Table.read(table) for table in flist]
+    new_table = vstack(tlist)
+    del tlist
+    new_table.write(output_file)
 
-tlist = []
-for table in y1a1_gold_tables:
-    tlist.append(Table.read(table))
+balrog_tables = glob.glob('/home/ckrawiec/DES/data/balrog_y1a1_truth_sim_flux_detmodel_*')
 
-new_Y1 = vstack(tlist)
+stackwrite(balrog_tables, '/home/ckrawiec/DES/data/balrog_y1a1_truth_sim_flux_detmodel.fits')
 
-new_Y1.write('/home/ckrawiec/DES/data/y1a1_gold_flux_detmodel_MC1.fits')
+#y1a1_gold_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_flux_detmodel_MC1_*')
 
-del tlist
-del new_Y1
+#tlist = []
+#for table in y1a1_gold_tables:
+#    tlist.append(Table.read(table))
 
-y1a1_gold_dfull_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_dfull_*')
+#new_Y1 = vstack(tlist)
 
-tlist = []
-for table in y1a1_gold_dfull_tables:
-    tlist.append(Table.read(tabl))
+#del tlist
 
-new_Y1_dfull = vstack(tlist)
+#new_Y1.write('/home/ckrawiec/DES/data/y1a1_gold_flux_detmodel_MC1.fits')
 
-new_Y1_dfull.write('/home/ckrawiec/DES/data/y1a1_gold_dfull.fits')
+#del new_Y1
+
+#y1a1_gold_dfull_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_dfull_*')
+
+#tlist = []
+#for table in y1a1_gold_dfull_tables:
+#    tlist.append(Table.read(table))
+
+#new_Y1_dfull = vstack(tlist)
+
+#del tlist
+
+#new_Y1_dfull.write('/home/ckrawiec/DES/data/y1a1_gold_dfull.fits')
 
 #cosmos = Table.read('/home/ckrawiec/COSMOS/data/COSMOS2015_Laigle+_v1.1.fits')
 
