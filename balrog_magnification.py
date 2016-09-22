@@ -17,8 +17,7 @@ printtime()
 
 balrog_file = sys.argv[1]
 output = sys.argv[2]
-
-mu = 1.01
+mu = sys.argv[3]
 
 balrog = Table.read(balrog_file)
 
@@ -65,7 +64,7 @@ print "first element of magnified data: {}, matched vector id: {}".format(mag_da
 
 t = Table()
 t['BALROG_INDEX'] = balrog['BALROG_INDEX'][:n_try]
-t['ID_MAG1.01'] = mag_ids
+t['ID_MAG'+str(mu)] = mag_ids
 
 if os.path.exists(output):
     spl  = os.path.splitext(output)
