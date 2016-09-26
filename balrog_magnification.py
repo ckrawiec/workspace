@@ -21,15 +21,19 @@ mu = sys.argv[3]
 
 balrog = Table.read(balrog_file)
 
-data = np.array( zip(balrog['FLUX_NOISELESS_G'],
-                     balrog['FLUX_NOISELESS_R'],
-                     balrog['FLUX_NOISELESS_I'],
-                     balrog['FLUX_NOISELESS_Z'],
-                     balrog['FLUX_NOISELESS_Y']) )
+flux = np.array([balrog['FLUX_NOISELESS_G'],
+                 balrog['FLUX_NOISELESS_R'],
+                 balrog['FLUX_NOISELESS_I'],
+                 balrog['FLUX_NOISELESS_Z'],
+                 balrog['FLUX_NOISELESS_Y']])
 
 n_try = len(data)
 
-mag_data = data[:n_try] * mu
+mag_flux = flux[:n_try] * mu
+mag_size = balrog['HALFLIGHTRADIUS_0'][:n_try] * np.sqrt(mu)
+
+mag_flux.append(mag_size)
+mag_data = np.array( zip(*np.vstack([mag_flux, mag_size])) )
 
 st = time.time()
 tree = ckdtree.cKDTree(data[:n_try], balanced_tree=False)
@@ -64,7 +68,10 @@ print "first element of magnified data: {}, matched vector id: {}".format(mag_da
 
 t = Table()
 t['BALROG_INDEX'] = balrog['BALROG_INDEX'][:n_try]
-t['ID_MAG'+str(mu)] = mag_ids
+
+indices = [i[1] for i in mag_ids]
+t['INDEX_MAG'+str(mu)] = t['BALROG_INDEX'][indices]
+t['D_MAG'+str(mu)] = [j[0] for j in mag_ids]
 
 if os.path.exists(output):
     spl  = os.path.splitext(output)
