@@ -74,16 +74,14 @@ print "first element of magnified data: {}, matched vector id: {}".format(mag_da
 t = Table()
 t['BALROG_INDEX'] = balrog['BALROG_INDEX'][:n_try]
 
-del balrog
-
 indices = [i[1] for i in mag_ids]
 t['INDEX_MAG'+str(mu)] = t['BALROG_INDEX'][indices]
-t['FLUX_NOISELESS_G_MAG'+str(mu)] = t['FLUX_NOISELESS_G'][indices]
-t['FLUX_NOISELESS_R_MAG'+str(mu)] = t['FLUX_NOISELESS_R'][indices]
-t['FLUX_NOISELESS_I_MAG'+str(mu)] = t['FLUX_NOISELESS_I'][indices]
-t['FLUX_NOISELESS_Z_MAG'+str(mu)] = t['FLUX_NOISELESS_Z'][indices]
-t['FLUX_NOISELESS_Y_MAG'+str(mu)] = t['FLUX_NOISELESS_Y'][indices]
-t['HALFLIGHTRADIUS_0_MAG'+str(mu)] = t['HALFLIGHTRADIUS_0'][indices]
+t['FLUX_NOISELESS_G_MAG'+str(mu)] = balrog['FLUX_NOISELESS_G'][indices]
+t['FLUX_NOISELESS_R_MAG'+str(mu)] = balrog['FLUX_NOISELESS_R'][indices]
+t['FLUX_NOISELESS_I_MAG'+str(mu)] = balrog['FLUX_NOISELESS_I'][indices]
+t['FLUX_NOISELESS_Z_MAG'+str(mu)] = balrog['FLUX_NOISELESS_Z'][indices]
+t['FLUX_NOISELESS_Y_MAG'+str(mu)] = balrog['FLUX_NOISELESS_Y'][indices]
+t['HALFLIGHTRADIUS_0_MAG'+str(mu)] = balrog['HALFLIGHTRADIUS_0'][indices]
 t['D_MAG'+str(mu)] = [j[0] for j in mag_ids]
 
 if os.path.exists(output):
