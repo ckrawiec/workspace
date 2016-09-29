@@ -31,9 +31,9 @@ data_type = 'FLUX' #MAG or FLUX
 filters = ['G','R','I','Z','Y']
 
 #groups
-z_groups = [[0.2,0.8],
-            [1.0,3.8],
-            [4.0,9.9]]
+z_groups = [[0.01,0.8],
+            [1.0,2.3],
+            [2.5,9.9]]
 
 k_near = 10000 #nearest neighbors if ptype=tree
 
