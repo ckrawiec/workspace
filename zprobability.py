@@ -23,7 +23,7 @@ from multiprocessing import Pool
 from astropy.io import ascii,fits
 from scipy.spatial import ckdtree
 
-num_threads = 4
+num_threads = 2
 
 ptype = 'tree' #full or tree integration
 data_type = 'FLUX' #MAG or FLUX
@@ -141,8 +141,18 @@ def main(args):
     print "Total setup time took {} s".format(setup_time)
     
     P_dict = {}
-    N_tot = 0
 
+    #for testing
+    N_try = 100#len(data_zip)
+    print "Working on {} galaxies ...".format(N_try)
+
+    n_per_process = int( np.ceil(N_try/num_threads) )
+    data_chunks = [data_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
+    err_chunks = [err_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
+    
+    del data_zip
+    del err_zip
+    
     #multiprocessing
     pool = Pool(processes=num_threads)
 
@@ -150,18 +160,10 @@ def main(args):
         z_mask = (z >= np.min(z_group)) & (z < np.max(z_group))
 
         template_zip = np.array( zip( *[templates[data_type+'_detmodel_'+f][z_mask] for f in filters] ) )
-        N_tot += len(template_zip)
+        print "# of COSMOS templates in z group {}: {}".format(str(z_group), len(template_zip))
     
         start = time.time()
         
-        #for testing
-        N_try = len(data_zip)
-        print "Working on {} galaxies ...".format(N_try)
-
-        n_per_process = int( np.ceil(N_try/num_threads) )
-        data_chunks = [data_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
-        err_chunks = [err_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
-
         results = pool.map(pwrapper, itertools.izip(data_chunks, err_chunks, itertools.repeat(template_zip)))
         
         P_dict[str(z_group)] = np.concatenate(results)
@@ -169,7 +171,8 @@ def main(args):
         work_time = time.time() - start
         print "Work completed in {} s".format(work_time)
 
-    
+    pool.close()
+        
     #write results to fits file
     col_defs = [fits.Column(name='coadd_objects_id', format='K', array=data_ids)]
 
@@ -179,12 +182,16 @@ def main(args):
     for z_group in z_groups:
         col_defs.append(fits.Column(name='P'+str(z_group), format='D', array=P_dict[str(z_group)]/P_norm))
 
-    tb_hdu = fits.BinTableHDU.from_columns(fits.ColDefs(col_defs), nrows=N_try)
+    col_defs.append(fits.Column(name='Pnorm', format='D', array=P_norm))
+
     pri_hdr = fits.Header()
-    pri_hdr['COMMENT'] = "Bayesian redshift probabilities for data in {} using photo-zs of templates from {}. Data vectors/errors were comprised of {}(ERR)_DETMODEL_% for % in {}. Columns reported here are \'P[zmin, zmax]\'".format(data_file, template_file, data_type, filters)
+    tb_hdr = fits.Header()
+    tb_hdr['COMMENT'] = "Bayesian redshift probabilities for data in {} using photo-zs of templates from {}. Data vectors/errors were comprised of {}(ERR)_DETMODEL_% for % in {}. Columns reported here are \'P[zmin, zmax]\'".format(data_file, template_file, data_type, filters)
     if ptype=='tree':
-        pri_hdr['NTREE'] = str(k_near)
+        tb_hdr['NTREE'] = str(k_near)
+
     pri_hdu = fits.PrimaryHDU(header=pri_hdr)
+    tb_hdu = fits.BinTableHDU.from_columns(fits.ColDefs(col_defs), nrows=N_try, header=tb_hdr)
     hdu_list = fits.HDUList([pri_hdu, tb_hdu])
     hdu_list.writeto(output_file, clobber=True)
     

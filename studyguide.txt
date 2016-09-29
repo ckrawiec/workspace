@@ -248,3 +248,6 @@ Schneider et al 2014
 Mandelbaum et al 2005
 Amara & Refregier (2007) = systematic errors needed for accurate determination of cosmological parameters
 Kitching, Taylor, & Heavens (2008b) = "
+Bartelmann 1995c = galaxy bias, magnification
+Crocce et al 2016 = SVA1 Gold catalog
+Chang et al 2015 = Modest_class, object obscuration (theta<10")
