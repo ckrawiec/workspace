@@ -1,6 +1,7 @@
 import numpy as np
 from astropy.table import Table, Column
 import healpy as hp
+import esutil
 
 home_dir = '/Users/Christina/'
 
@@ -14,41 +15,46 @@ region_file = home_dir+'DES/data/sva1_gold_r1.0_goodregions_04_n4096.fits.gz'
 hpmap = hp.read_map(region_file, nest=True)
 nside = hp.npix2nside(hpmap.size)
 
-theta = (90.0 - sva1_gold['dec'])*np.pi/180.
-phi = sva1_gold['ra']*np.pi/180.
+theta = (90.0 - sva1_gold['DEC'])*np.pi/180.
+phi = sva1_gold['RA']*np.pi/180.
 pix = hp.ang2pix(nside, theta, phi, nest=True)
 good, = np.where(hpmap[pix] == 1)
 
 print "good regions found"
 
 h = esutil.htm.HTM(10)
-h.match(sva1_gold['ra'][good,], sva1_gold['dec'][good,],
-        cosmos['alpha_j2000'], cosmos['delta_j2000'],
+h.match(sva1_gold['RA'][good,], sva1_gold['DEC'][good,],
+        cosmos['ALPHA_J2000'], cosmos['DELTA_J2000'],
         radius=1./3600,
         file=home_dir+'DES/data/match_sva1_gold_cosmos_gals_1arcsec')
 m = h.read(home_dir+'DES/data/match_sva1_gold_cosmos_gals_1arcsec')
 
-gold_m, cosmos_m, merr = zip(*m)
+gold_m, cosmos_m, merr = np.array(zip(*m))
 
 print "matched"
 
 no_cosmos = list(set(range(0,len(sva1_gold[good,])))-set(gold_m))
 
-new_sv = sva1_gold[good,][no_cosmos]
+print len(gold_m)==len(set(gold_m))
 
-print "made new SV table"
+#new_sv = sva1_gold[good,][no_cosmos]
 
-new_sv.write(home_dir+'DES/data/sva1_gold_detmodel_MC1_good_regions_no_cosmos.fits')
-del new_sv
+#print "made new SV table"
+
+#new_sv.write(home_dir+'DES/data/sva1_gold_detmodel_MC1_good_regions_no_cosmos.fits')
+#del new_sv
 
 print "wrote new SV table"
 
-new_cosmos = sva1_gold[good,][gold_m] 
+gold_m_int = [int(g) for g in gold_m]
+cosmos_m_int = [int(c) for c in cosmos_m]
+
+new_cosmos = sva1_gold[good,][gold_m_int] 
 del sva1_gold
 
 print "deleted old SV table"
 
-new_cosmos.add_column(Column(name='photoz', data=cosmos['PHOTOZ'][cosmos_m]))
+new_cosmos.add_column(Column(name='photoz', data=cosmos['PHOTOZ'][cosmos_m_int]))
 new_cosmos.add_column(Column(name='match_err', data=merr))
 
 print "made new cosmos table"
