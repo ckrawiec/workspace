@@ -31,8 +31,7 @@ data_type = 'FLUX' #MAG or FLUX
 filters = ['G','R','I','Z','Y']
 
 #groups
-z_groups = [[0.2,0.8],
-            [1.0,3.8],
+z_groups = [[0.01,4.0],
             [4.0,9.9]]
 
 k_near = 10000 #nearest neighbors if ptype=tree
@@ -43,6 +42,7 @@ def pwrapper(args):
         if len(args[-1]) > k_near:
             return ptree(*args)
         else:
+            print "Length of truth array <= {}, using brute force instead of tree".format(k_near)
             return p(*args)
     elif ptype=='full':
         return p(*args)
@@ -134,7 +134,7 @@ def main(args):
     data_zip = np.array( zip( *[data[data_type+'_detmodel_'+f] for f in filters] ) )
     err_zip = np.array( zip( *[data[data_type+'err_detmodel_'+f] for f in filters] ) )
 
-    data_ids = data['coadd_objects_id']
+    data_ids = data['COADD_OBJECTS_ID']
     del data
 
     setup_time = time.time()-setup_start
@@ -143,7 +143,7 @@ def main(args):
     P_dict = {}
 
     #for testing
-    N_try = 100#len(data_zip)
+    N_try = 10000#len(data_zip)
     print "Working on {} galaxies ...".format(N_try)
 
     n_per_process = int( np.ceil(N_try/num_threads) )
@@ -174,7 +174,7 @@ def main(args):
     pool.close()
         
     #write results to fits file
-    col_defs = [fits.Column(name='coadd_objects_id', format='K', array=data_ids)]
+    col_defs = [fits.Column(name='COADD_OBJECTS_ID', format='K', array=data_ids)]
 
     P_norm = np.zeros(N_try)
     for k in P_dict.keys():
@@ -182,7 +182,7 @@ def main(args):
     for z_group in z_groups:
         col_defs.append(fits.Column(name='P'+str(z_group), format='D', array=P_dict[str(z_group)]/P_norm))
 
-    col_defs.append(fits.Column(name='Pnorm', format='D', array=P_norm))
+    col_defs.append(fits.Column(name='PNORM', format='D', array=P_norm))
 
     pri_hdr = fits.Header()
     tb_hdr = fits.Header()
