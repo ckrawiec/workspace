@@ -30,13 +30,24 @@ flux = np.array([balrog['FLUX_NOISELESS_G'],
 n_try = len(balrog)
 
 mag_flux = flux[:n_try] * mu
+mean_flux = np.mean(mag_flux, axis=1)
+sigma_flux = np.std(mag_flux, axis=1)
 mag_size = balrog['HALFLIGHTRADIUS_0'][:n_try] * np.sqrt(mu)
+mean_size = np.mean(mag_size)
+sigma_size = np.std(mag_size)
 
-mag_data = np.array( zip(*np.vstack([mag_flux, mag_size])) )
-data = np.array( zip(*np.vstack([flux, balrog['HALFLIGHTRADIUS_0']])) )
+new_mag_flux = np.prod(zip(np.sum(zip(mag_flux, -1*mean_flux), axis=1), 1./sigma_flux), axis=1)
+new_flux = np.prod(zip(np.sum(zip(flux, -1*mean_flux), axis=1), 1./sigma_flux), axis=1)
+new_mag_size = (mag_size - mean_size) / sigma_size
+new_size = (balrog['HALFLIGHTRADIUS_0'] - mean_size) / sigma_size
+
+del mag_flux
+del mag_size
+
+mag_data = np.array( zip(*np.vstack([new_mag_flux, new_mag_size])) )
+data = np.array( zip(*np.vstack([new_flux, new_size))) )
 
 del flux
-del mag_flux
 
 st = time.time()
 tree = ckdtree.cKDTree(data[:n_try], balanced_tree=False)
@@ -75,7 +86,7 @@ t = Table()
 t['BALROG_INDEX'] = balrog['BALROG_INDEX'][:n_try]
 
 indices = [i[1] for i in mag_ids]
-t['INDEX_MAG'+str(mu)] = t['BALROG_INDEX'][indices]
+t['BALROG_INDEX_MAG'+str(mu)] = t['BALROG_INDEX'][indices]
 t['FLUX_NOISELESS_G_MAG'+str(mu)] = balrog['FLUX_NOISELESS_G'][indices]
 t['FLUX_NOISELESS_R_MAG'+str(mu)] = balrog['FLUX_NOISELESS_R'][indices]
 t['FLUX_NOISELESS_I_MAG'+str(mu)] = balrog['FLUX_NOISELESS_I'][indices]
@@ -83,6 +94,7 @@ t['FLUX_NOISELESS_Z_MAG'+str(mu)] = balrog['FLUX_NOISELESS_Z'][indices]
 t['FLUX_NOISELESS_Y_MAG'+str(mu)] = balrog['FLUX_NOISELESS_Y'][indices]
 t['HALFLIGHTRADIUS_0_MAG'+str(mu)] = balrog['HALFLIGHTRADIUS_0'][indices]
 t['D_MAG'+str(mu)] = [j[0] for j in mag_ids]
+t['I_MAG'+str(mu)] = indices
 
 if os.path.exists(output):
     spl  = os.path.splitext(output)
