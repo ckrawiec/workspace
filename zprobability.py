@@ -1,9 +1,9 @@
 usage = """
-Calculate the probability that
+Calculate the Bayesian probability that
 fluxes of input galaxies belong to 
 certain redshift ranges using photo-z's.
 
-usage: python zprobability.py <data table> <truth table> <output>
+usage: python zprobability.py <data table> <truth table> <output> <start index> <end index>
 
 <data table> must include the following:
     -SExtractor flux and error outputs
@@ -12,6 +12,8 @@ usage: python zprobability.py <data table> <truth table> <output>
     -column named 'photoz'
 
 <output> will be a binary fits table and will overwrite existing file
+
+<start/end index> are optional indices to only work on a slice of the data table
 """
 import itertools
 import time
@@ -23,7 +25,7 @@ from multiprocessing import Pool
 from astropy.io import ascii,fits
 from scipy.spatial import ckdtree
 
-num_threads = 2
+num_threads = 8
 
 ptype = 'tree' #full or tree integration
 data_type = 'FLUX' #MAG or FLUX
@@ -110,6 +112,12 @@ def main(args):
     data_file = args[1]
     template_file = args[2]
     output_file = args[3]
+    if len(args)==6:
+        start_index = args[4]
+        end_index = args[5]
+    else:
+        start_index = 0
+        end_index = None
 
     now = time.strftime("%Y-%m-%d %H:%M")
     print "#"+now
@@ -142,13 +150,12 @@ def main(args):
     
     P_dict = {}
 
-    #for testing
-    N_try = 10000#len(data_zip)
-    print "Working on {} galaxies ...".format(N_try)
+    N_try = len(data_zip[start_index:end_index])
+    print "Working on {} galaxies (table indices {}-{}) ...".format(N_try, start_index, end_index)
 
     n_per_process = int( np.ceil(N_try/num_threads) )
-    data_chunks = [data_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
-    err_chunks = [err_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
+    data_chunks = [data_zip[start_index+i:start_index+i+n_per_process] for i in xrange(0, N_try, n_per_process)]
+    err_chunks = [err_zip[start_index+i:start_index+i+n_per_process] for i in xrange(0, N_try, n_per_process)]
     
     del data_zip
     del err_zip
