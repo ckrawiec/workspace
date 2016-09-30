@@ -113,8 +113,8 @@ def main(args):
     template_file = args[2]
     output_file = args[3]
     if len(args)==6:
-        start_index = args[4]
-        end_index = args[5]
+        start_index = int(args[4])
+        end_index = int(args[5])
     else:
         start_index = 0
         end_index = None
@@ -139,10 +139,10 @@ def main(args):
     z = templates['photoz']
 
     #data vectors
-    data_zip = np.array( zip( *[data[data_type+'_detmodel_'+f] for f in filters] ) )
-    err_zip = np.array( zip( *[data[data_type+'err_detmodel_'+f] for f in filters] ) )
+    data_zip = np.array( zip( *[data[data_type+'_detmodel_'+f][start_index:end_index] for f in filters] ) )
+    err_zip = np.array( zip( *[data[data_type+'err_detmodel_'+f][start_index:end_index] for f in filters] ) )
 
-    data_ids = data['COADD_OBJECTS_ID']
+    data_ids = data['COADD_OBJECTS_ID'][start_index:end_index]
     del data
 
     setup_time = time.time()-setup_start
@@ -150,12 +150,12 @@ def main(args):
     
     P_dict = {}
 
-    N_try = len(data_zip[start_index:end_index])
+    N_try = len(data_zip)
     print "Working on {} galaxies (table indices {}-{}) ...".format(N_try, start_index, end_index)
 
     n_per_process = int( np.ceil(N_try/num_threads) )
-    data_chunks = [data_zip[start_index+i:start_index+i+n_per_process] for i in xrange(0, N_try, n_per_process)]
-    err_chunks = [err_zip[start_index+i:start_index+i+n_per_process] for i in xrange(0, N_try, n_per_process)]
+    data_chunks = [data_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
+    err_chunks = [err_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
     
     del data_zip
     del err_zip
