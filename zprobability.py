@@ -25,7 +25,7 @@ from multiprocessing import Pool
 from astropy.io import ascii,fits
 from scipy.spatial import ckdtree
 
-num_threads = 8
+num_threads = 4
 
 ptype = 'tree' #full or tree integration
 data_type = 'FLUX' #MAG or FLUX
@@ -151,14 +151,15 @@ def main(args):
     P_dict = {}
 
     N_try = len(data_zip)
-    print "Working on {} galaxies (table indices {}-{}) ...".format(N_try, start_index, end_index)
 
     n_per_process = int( np.ceil(N_try/num_threads) )
     data_chunks = [data_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
-    err_chunks = [err_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
-    
     del data_zip
+
+    err_chunks = [err_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
     del err_zip
+
+    print "Working on {} galaxies (table indices {}-{}) ...".format(N_try, start_index, end_index)
     
     #multiprocessing
     pool = Pool(processes=num_threads)
