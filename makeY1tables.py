@@ -3,6 +3,8 @@ import glob
 import esutil
 from astropy.table import Table, Column, vstack
 
+home_dir = '/home/ckrawiec/'
+
 def stackwrite(flist, output_file):
     tlist = [Table.read(table) for table in flist]
     new_table = vstack(tlist)
@@ -32,9 +34,9 @@ def stackwrite(flist, output_file):
 
 
 #*********Y1A1 GOLD DFULL/COSMOS MATCHED BY POSITION********
-cosmos = Table.read('/home/ckrawiec/COSMOS/data/COSMOS2015_Laigle+_v1.1.fits')
+cosmos = Table.read(home_dir+'COSMOS/data/COSMOS2015_Laigle+_v1.1.fits')
 
-y1 = Table.read('/home/ckrawiec/DES/data/y1a1_gold_dfull.fits')
+y1 = Table.read(home_dir+'DES/data/y1a1_gold_dfull.fits')
 
 h = esutil.htm.HTM(10)
 h.match(y1['RA'], y1['DEC'],
