@@ -30,14 +30,12 @@ flux = np.array([balrog['FLUX_NOISELESS_G'],
 n_try = len(balrog)
 
 mag_flux = flux[:n_try] * mu
-mean_flux = np.mean(mag_flux, axis=1)
-sigma_flux = np.std(mag_flux, axis=1)
 mag_size = balrog['HALFLIGHTRADIUS_0'][:n_try] * np.sqrt(mu)
 mean_size = np.mean(mag_size)
 sigma_size = np.std(mag_size)
 
-new_mag_flux = np.prod(zip(np.sum(zip(mag_flux, -1*mean_flux), axis=1), 1./sigma_flux), axis=1)
-new_flux = np.prod(zip(np.sum(zip(flux, -1*mean_flux), axis=1), 1./sigma_flux), axis=1)
+new_mag_flux = np.array([(mfi-np.mean(mfi))/np.std(mfi) for mfi in mag_flux])
+new_flux = np.array([(fi-np.mean(mfi))/np.std(mfi) for fi,mfi in zip(flux,mag_flux)])
 new_mag_size = (mag_size - mean_size) / sigma_size
 new_size = (balrog['HALFLIGHTRADIUS_0'] - mean_size) / sigma_size
 
@@ -45,7 +43,7 @@ del mag_flux
 del mag_size
 
 mag_data = np.array( zip(*np.vstack([new_mag_flux, new_mag_size])) )
-data = np.array( zip(*np.vstack([new_flux, new_size))) )
+data = np.array( zip(*np.vstack([new_flux, new_size])) )
 
 del flux
 
