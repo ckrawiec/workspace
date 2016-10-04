@@ -85,11 +85,13 @@ def p(vals, errs, truevals):
 
 def ptree(vals, errs, truevals, knear=k_near):
 
-    truetree = ckdtree.cKDTree(truevals)
+    sigma = np.mean(errs.T, axis=1)
+
+    truetree = ckdtree.cKDTree(truevals/sigma)
     
     out = []
     for val, err in zip(vals, errs):
-        dnear, inear = truetree.query(val, k=knear)
+        dnear, inear = truetree.query(val/sigma, k=knear)
         truearr = truetree.data[inear]
         
         covI = 1./err**2.
