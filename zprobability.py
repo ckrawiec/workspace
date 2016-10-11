@@ -20,7 +20,6 @@ import time
 import os
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
 from multiprocessing import Pool
 from astropy.io import ascii,fits
 from scipy.spatial import ckdtree
@@ -44,7 +43,7 @@ def pwrapper(args):
         if len(args[-1]) > k_near:
             return ptree(*args)
         else:
-            print "Length of truth array <= {}, using brute force instead of tree".format(k_near)
+            print "Length of truth array ({}) <= {}, using brute force instead of tree".format(len(args[-1]), k_near)
             return p(*args)
     elif ptype=='full':
         return p(*args)
@@ -85,14 +84,14 @@ def p(vals, errs, truevals):
 
 def ptree(vals, errs, truevals, knear=k_near):
 
-    sigma = np.mean(errs.T, axis=1)
+    sigma = np.median(errs.T, axis=1)
 
     truetree = ckdtree.cKDTree(truevals/sigma)
     
     out = []
     for val, err in zip(vals, errs):
         dnear, inear = truetree.query(val/sigma, k=knear)
-        truearr = truetree.data[inear]
+        truearr = truetree.data[inear] * sigma
         
         covI = 1./err**2.
         A = 1./np.sqrt( (2.*np.pi)**len(val)  * np.prod(err**2.) )
@@ -101,7 +100,7 @@ def ptree(vals, errs, truevals, knear=k_near):
         B = -0.5 * np.sum(diff**2.*covI, axis=1)
         C = A * np.exp(B)
             
-        out.append(np.sum(C) * len(truevals)/len(truearr))
+        out.append(np.sum(C) * float(len(truevals))/len(truearr))
             
     return np.array(out)
 
@@ -154,13 +153,16 @@ def main(args):
 
     N_try = len(data_zip)
 
-    n_per_process = int( np.ceil(N_try/num_threads) )
+    n_per_process = int( np.ceil(N_try/ float(num_threads)) )
+    print "n_per_process = ", n_per_process
     data_chunks = [data_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
+    print "Length of data_zip, N_try: {}, {}".format(len(data_zip), N_try)
     del data_zip
 
     err_chunks = [err_zip[i:i+n_per_process] for i in xrange(0, N_try, n_per_process)]
     del err_zip
 
+    print "Length of data_chunks: {}".format(len(data_chunks))
     print "Working on {} galaxies (table indices {}-{}) ...".format(N_try, start_index, end_index)
     
     #multiprocessing
