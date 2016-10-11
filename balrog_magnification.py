@@ -47,17 +47,26 @@ data = np.array( zip(*np.vstack([new_flux, new_size])) )
 
 del flux
 
+g = balrog['FLUX_NOISELESS_G']
+r = balrog['FLUX_NOISELESS_R']
+i = balrog['FLUX_NOISELESS_I']
+z = balrog['FLUX_NOISELESS_Z']
+y = balrog['FLUX_NOISELESS_Y']
+size = balrog['HALFLIGHTRADIUS_0']
+index = balrog['BALROG_INDEX']
+
+del balrog
+
 st = time.time()
 tree = ckdtree.cKDTree(data[:n_try], balanced_tree=False)
 en = time.time()
 
+del data
+
 print "tree build time ({} elements): {}s".format(n_try, en-st)
 
 def savequery(data_chunk):
-    ids = []
-    for d in data_chunk:
-        ids.append(tree.query(d))
-    return ids
+    return tree.query(data_chunk)
 
 #multiprocessing
 n_per_process = int( np.ceil(n_try/num_threads) )
@@ -72,26 +81,31 @@ map_start = time.time()
 results = pool.map(savequery, data_chunks)
 map_end = time.time()
 
+pool.close()
+
 del data_chunks
 
 print "query time: {}s".format(map_end-map_start)
 
-mag_ids = np.concatenate(results)
+dists, indices = np.hstack(results)
 
-print "first element of magnified data: {}, matched vector id: {}".format(mag_data[0], mag_ids[0])
+print "first element of magnified data: {}, matched vector id: {}".format(mag_data[0], indices[0])
+
+del mag_data
 
 t = Table()
-t['BALROG_INDEX'] = balrog['BALROG_INDEX'][:n_try]
+t['BALROG_INDEX'] = index[:n_try]
 
-indices = [i[1] for i in mag_ids]
+indices = [int(ii) for ii in indices]
+
 t['BALROG_INDEX_MAG'+str(mu)] = t['BALROG_INDEX'][indices]
-t['FLUX_NOISELESS_G_MAG'+str(mu)] = balrog['FLUX_NOISELESS_G'][indices]
-t['FLUX_NOISELESS_R_MAG'+str(mu)] = balrog['FLUX_NOISELESS_R'][indices]
-t['FLUX_NOISELESS_I_MAG'+str(mu)] = balrog['FLUX_NOISELESS_I'][indices]
-t['FLUX_NOISELESS_Z_MAG'+str(mu)] = balrog['FLUX_NOISELESS_Z'][indices]
-t['FLUX_NOISELESS_Y_MAG'+str(mu)] = balrog['FLUX_NOISELESS_Y'][indices]
-t['HALFLIGHTRADIUS_0_MAG'+str(mu)] = balrog['HALFLIGHTRADIUS_0'][indices]
-t['D_MAG'+str(mu)] = [j[0] for j in mag_ids]
+t['FLUX_NOISELESS_G_MAG'+str(mu)] = g[indices]
+t['FLUX_NOISELESS_R_MAG'+str(mu)] = r[indices]
+t['FLUX_NOISELESS_I_MAG'+str(mu)] = i[indices]
+t['FLUX_NOISELESS_Z_MAG'+str(mu)] = z[indices]
+t['FLUX_NOISELESS_Y_MAG'+str(mu)] = y[indices]
+t['HALFLIGHTRADIUS_0_MAG'+str(mu)] = size[indices]
+t['D_MAG'+str(mu)] = dists
 t['I_MAG'+str(mu)] = indices
 
 if os.path.exists(output):
