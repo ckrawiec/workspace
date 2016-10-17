@@ -29,11 +29,12 @@ num_threads = 4
 ptype = 'tree' #full or tree integration
 data_type = 'FLUX' #MAG or FLUX
 
-filters = ['G','R','I','Z','Y']
+filters = ['G','R','I','Z']
 
 #groups
-z_groups = [[0.01,4.0],
-            [4.0,9.9]]
+z_groups = [[0.001,0.8],
+            [0.8,2.5],
+            [2.5,9.9]]
 
 k_near = 10000 #nearest neighbors if ptype=tree
 
@@ -143,7 +144,13 @@ def main(args):
     data_zip = np.array( zip( *[data[data_type+'_detmodel_'+f][start_index:end_index] for f in filters] ) )
     err_zip = np.array( zip( *[data[data_type+'err_detmodel_'+f][start_index:end_index] for f in filters] ) )
 
-    data_ids = data['COADD_OBJECTS_ID'][start_index:end_index]
+    if 'balrog' in data_file:
+        id_col_name = 'BALROG_INDEX'
+    else:
+        id_col_name = 'COADD_OBJECTS_ID'
+        
+    data_ids = data[id_col_name][start_index:end_index]
+    
     del data
 
     setup_time = time.time()-setup_start
@@ -186,7 +193,7 @@ def main(args):
     pool.close()
         
     #write results to fits file
-    col_defs = [fits.Column(name='COADD_OBJECTS_ID', format='K', array=data_ids)]
+    col_defs = [fits.Column(name=id_col_name, format='K', array=data_ids)]
 
     P_norm = np.zeros(N_try)
     for k in P_dict.keys():
