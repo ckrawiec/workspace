@@ -7,28 +7,29 @@ import glob
 import pandas as pd
 from myutils import fitsstack
 
-base_name = 'zprob_SV_z25_3bins_griz'
+base_name = 'zprob_Y1_z25_3bins_sigma_tree_griz'
+#'zprob_SV_z25_3bins_sigma_tree_griz'
 
 zsrc = [2.5, 9.9]
 zlens = [0.001, 0.8]
 zother = [0.8,2.5]
 
-d_file = '/home/ckrawiec/DES/data/sva1_gold_detmodel_MC1_good_regions_no_cosmos.fits'
+d_file = '/home/ckrawiec/DES/data/y1a1_gold_flux_detmodel_MC1.fits'
+#'/home/ckrawiec/DES/data/sva1_gold_detmodel_MC1_good_regions_no_cosmos.fits'
+
+red_file = '/home/ckrawiec/DES/data/y1a1_gold_1.0.2b-full_redmapper_v6.4.11_redmagic_highdens_0.5-10.fit'
 
 z_file = '/home/ckrawiec/DES/magnification/lbgselect/{}.fits'.format(base_name)
 z_files = glob.glob('/home/ckrawiec/DES/magnification/lbgselect/{}_*'.format(base_name))
 
-
-#y1_files = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_mag_detmodel_MC1_*')
-#y1_out = '/home/ckrawiec/DES/data/y1a1_gold_mag_detmodel_MC1.fits'
-
 def makeplots():
-    hexbinPsrcmean()
-    hist2dPall()
-    NvsPcut()
-    radecscatter(0.6)
-    histmagi(0.6)
-
+#    hexbinPsrcmean()
+#    hist2dPall()
+#    NvsPcut()
+#    radecscatter(0.6)
+#    histmagi(0.6)
+    redmagiccount(0.6)
+        
 def writefitsstack(infiles, outfile):
     hdu = fitsstack(infiles)
     pri_hdu = fits.PrimaryHDU()
@@ -47,6 +48,8 @@ del ztab, dtab
 g = tab['MAG_DETMODEL_G']
 r = tab['MAG_DETMODEL_R']
 i = tab['MAG_DETMODEL_I']
+z = tab['MAG_DETMODEL_Z']
+Y = tab['MAG_DETMODEL_Y']
 
 ra, dec = tab['RA'], tab['DEC']
 
@@ -61,12 +64,17 @@ spte = (ra>50) & (ra<99) & (dec>-65) & (dec<-40)
 y1main = (dec < -35)
 
 notnan = ~np.isnan(Plens) & ~np.isnan(Psrc)
-box = ((r-i) < 4.) & ((r-i) > -1.) & ((g-r) < 4.) & ((g-r) > -1.)
+grbox = (((g-r) < 4.) & ((g-r) > -1.5))
+ribox = (((r-i) < 4.) & ((r-i) > -1.5))
+izbox = (((i-z) < 4.) & ((i-z) > -1.5))
+zYbox = (((z-Y) < 4.) & ((z-Y) > -1.5))
 
-ri = r[box]-i[box]
-gr = g[box]-r[box]
+gr = g-r
+ri = r-i
+iz = i-z
+zY = z-Y
 
-del g,r
+del g,r,z,Y
 
 def histmagi(cut):
     plt.hist(i[Psrc>cut], histtype='step', bins=100, label='all')
@@ -81,11 +89,31 @@ def histmagi(cut):
     plt.close()
 
 def hexbinPsrcmean(): 
-    df = pd.DataFrame(zip(ri, gr), columns=['r-i', 'g-r'])
-    df['Psrc']=Psrc[box]
+    
+    df = pd.DataFrame(zip(ri[ribox & grbox], gr[ribox & grbox]), columns=['r-i', 'g-r'])
+    df['Psrc']=Psrc[ribox & grbox]
     df.plot.hexbin(x='r-i', y='g-r', C='Psrc', reduce_C_function=np.mean, gridsize=20, cmap=plt.get_cmap('gnuplot'))
     plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_mag_ri_gr_P_mean_hexbin'.format(base_name))
     plt.close()
+
+    df = pd.DataFrame(zip(ri[ribox & grbox], gr[ribox & grbox]), columns=['r-i', 'g-r'])
+    df['Psrc/Plens']=Psrc[ribox & grbox]/Plens[ribox & grbox]
+    df.plot.hexbin(x='r-i', y='g-r', C='Psrc/Plens', reduce_C_function=np.mean, gridsize=20, cmap=plt.get_cmap('gnuplot'))
+    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_mag_ri_gr_Pratio_mean_hexbin'.format(base_name))
+    plt.close()
+
+    df = pd.DataFrame(zip(iz[izbox & ribox], ri[izbox & ribox]), columns=['i-z', 'r-i'])
+    df['Psrc']=Psrc[izbox & ribox]
+    df.plot.hexbin(x='i-z', y='r-i', C='Psrc', reduce_C_function=np.mean, gridsize=20, cmap=plt.get_cmap('gnuplot'))
+    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_mag_iz_ri_P_mean_hexbin'.format(base_name))
+    plt.close()
+    
+    df = pd.DataFrame(zip(zY[zYbox & izbox], iz[zYbox & izbox]), columns=['z-Y', 'i-z'])
+    df['Psrc']=Psrc[zYbox & izbox]
+    df.plot.hexbin(x='z-Y', y='i-z', C='Psrc', reduce_C_function=np.mean, gridsize=20, cmap=plt.get_cmap('gnuplot'))
+    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_mag_zY_iz_P_mean_hexbin'.format(base_name))
+    plt.close()
+
     
 def hist2dPall():
     plt.hist2d(Plens[notnan], Psrc[notnan], bins=100, norm=mpl.colors.LogNorm())
@@ -141,6 +169,23 @@ def radecscatter(cut):
     plt.xlim(148.5, 151.5)
     plt.ylim(1., 3.5)
     plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_ra_dec_COSMOS'.format(base_name))
+    plt.close()
+
+
+def redmagiccount(cut):
+    red_tab = Table.read(red_file)
+    redra, reddec = red_tab['RA'], red_tab['DEC']
+
+    r_min = 0.1
+    r_max = 1.
+    n_src = []
+    for this_ra, this_dec in zip(redra,reddec):
+        r = np.sqrt((ra-this_ra)**2. + (dec-this_dec)**2.)
+        annulus = (r <  r_max) & (r > r_min) & (Psrc > cut)
+        n_src.append(len(ra[annulus]))
+    plt.hist(n_src, bins=100, histtype='step')
+    plt.xlabel('# P(src) > {} around redmagic galaxies ({}-{}$\deg$)'.format(cut,r_min,r_max))
+    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_redmagic_annulus_count'.format(base_name))
     plt.close()
     
 makeplots()
