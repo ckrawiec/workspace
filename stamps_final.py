@@ -27,9 +27,9 @@ def get_params():
     parser.add_argument('-id', default='', type=str, action='store',
                         help='Output image files will be of the form stamps_<id>_01.fits (default='')')
     parser.add_argument('-nx_tiles', default=1, type=int, action='store',
-                        help='The number of postage stamps in the x-direction (default=10)')
+                        help='The number of postage stamps in the x-direction (default=1)')
     parser.add_argument('-ny_tiles', default=1, type=int, action='store',
-                        help='The number of postage stamps in the y-direction (default=10)')
+                        help='The number of postage stamps in the y-direction (default=1)')
     parser.add_argument('-stamp_size', default=48, type=int, action='store',
                         help='Size of stamp edge in pixels (default=48)')
     parser.add_argument('-pixel_scale', default=1., type=float, action='store',
@@ -64,9 +64,9 @@ def get_params():
     parser.add_argument('-gal_snr_min', type=float, action='store',
                         help='Minimum S/N ')
     parser.add_argument('-gal_hlr_min', default=3., type=float, action='store',
-                        help='Minimum half-light radius (default=3.)')
+                        help='Minimum half-light radius in arcsec (default=3.)')
     parser.add_argument('-gal_hlr_max', default=3., type=float, action='store',
-                        help='Maximum half-light radius (default=3.)')
+                        help='Maximum half-light radius in arcsec (default=3.)')
 
     #Added shear
     parser.add_argument('-g1', default=0., type=float, action='store',
@@ -126,13 +126,13 @@ def main():
 
     #create test image to determine noise level
     if p.noise_suppression==False:
-        test_psf = galsim.Moffat(3.5,half_light_radius=p.psf_hlr*p.pixel_scale)
+        test_psf = galsim.Moffat(3.5,half_light_radius=p.psf_hlr)
         test_psf = test_psf.shear(e2=p.psf_e2)
 
         test_bulge = galsim.DeVaucouleurs(half_light_radius=((p.gal_hlr_max-p.gal_hlr_min)/2.
-                                          +p.gal_hlr_min)*p.pixel_scale)
+                                          +p.gal_hlr_min))
         test_disk = galsim.Exponential(half_light_radius=((p.gal_hlr_max-p.gal_hlr_min)/2.
-                                       +p.gal_hlr_min)*p.pixel_scale)
+                                       +p.gal_hlr_min))
         test_gal = 0.5*test_bulge + 0.5*test_disk
         test_gal = test_gal.withFlux(p.gal_flux_min)
 
@@ -164,7 +164,7 @@ def main():
 
     for ifile in range(p.n_files):
         #all files have same psf
-        psf = galsim.Moffat(3.5,half_light_radius=p.psf_hlr*p.pixel_scale)
+        psf = galsim.Moffat(3.5,half_light_radius=p.psf_hlr)
         psf = psf.shear(e2=p.psf_e2)
         psf_image = galsim.ImageF(p.stamp_size, p.stamp_size, scale=p.pixel_scale)
         psf.drawImage(psf_image)
@@ -176,7 +176,7 @@ def main():
                                    iy*p.stamp_size+1, (iy+1)*p.stamp_size)
                 sub_gal_image = gal_image[b]
                     
-                hlr =  (rng() * (p.gal_hlr_max-p.gal_hlr_min) + p.gal_hlr_min) * p.pixel_scale
+                hlr =  rng() * (p.gal_hlr_max-p.gal_hlr_min) + p.gal_hlr_min
                 flux = rng() * (p.gal_flux_max-p.gal_flux_min) + p.gal_flux_min
                 bulge_frac = rng()
 

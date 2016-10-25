@@ -49,11 +49,19 @@ What is magnification?
 	 -possible for effects to cancel out
 -number of sources at given flux is changed
 	-observed luminosity function depends on slope of intrinsic luminosity function
-
-
+	-"magnification bias" = amplification that is function of
+	(quasar) magnitude and dilution effect that is constant
+	regardless of magnitude (Scranton05)
+	-(using mu=1+2kappa approx.), cross-correlation between magnification & foreground matter
+	overdensity can be easily computed as function of matter power
+	spectrum (Scranton05)
+	
 Shear vs. Magnification
 -magnification provides a cross-check to shear because they have different systematics (PSF anisotropy vs. photometric calibrations)
--magnification can probe higher redshifts than shear (check)
+-magnification can probe higher redshifts than shear (check) -
+magnification does not need resolved galaxies (just magnitude, not
+shape) very hard to measure shape of galaxies with z>1 from
+ground-based data(Hild 11)
 -# of source galaxies with accurate magnitudes and photo-zs is greater than # of sources with accurate shapes, but magnification measurements less powerful for given sample
 -dependence on redshift for cosmological constraints is different for magnitude and shear
 -magnification is now possible because of deeper surveys and stable photometry
@@ -65,6 +73,9 @@ Shear vs. Magnification
 -power spectrum of (mu-1) is 4*P_k(l) therefore cosmological constraints could be made independent of shear (BCas13)
 -constraints on sigma8 + omega_M can be improved by ~40% using magnification (vanW10)
 -size magnification - sizes usually come for free with shear measurements
+-magnification S/N typically lower for magnification than shear, but
+this can depend on the slope of background number counts - beneficial
+to choose steep slope (Hild 11)
 
 What should we use as lenses and sources?
 -Want cleanly separated samples
@@ -88,6 +99,18 @@ What is an LBG?
 -LBGs are star-forming galaxies
 -they are at high redshift, so the lyman break is detectable by ground or space telescopes
       -912A is far UV and would be blocked by Earth's atmosphere
+-different contributions to absorption (Meiksin 2009)
+	-Ly-alpha forest absorbers (NHI < 10^17/cm^2) = most common
+	-Lyman Limit Systems (10^17<NHI<10^20) = dense enough to
+	absorb photons above lyman limit (photoelectric edge)
+	-Damped Ly-alpha absorbers (NHI>10^20) = rarest, most easily
+	identifiable in spectra
+	-two main effects for attentuation of distant light source are
+	photoelectric absorption by LLSs and optically thin IGM and
+	resonance line scattering by the Lyalpha forest (IGMtrans2011)
+	-additional contributions from intervening metal systems and
+	helium (discrete and clumpy, predict mean amount and model
+	statistical fluctutions - IGMtrans2011)
 
 What about lenses?
 -use red galaxies because they have well-determined redshift
@@ -100,6 +123,15 @@ What problems could I have?
 -how close are neighbors?
      -will background members be magnified by neighbors?
      -does stacking get rid of this effect? (averaging)
+
+Data
+-MAGAUTO = flux (counts) measured in an elliptical aperture, provides estimation of total magnitude of the object
+-MAGDETMODEL measured from the shape (a Sersic profile model) fit to the object in the SExtractor detection image (either r or i band for SV (from photoz paper)) and the flux is measured separately in each band using same model shape
+-MAGMODEL fit the shape of the object independently in each of the bands
+-MAGDETMODEL in general better suited for color measurement and hence more appropriate to use for photoz estimation (sanchez et al 2014 photoz paper)
+-use matching radius of 1 arcsec (same as sanchez et al)
+-Redmagic Y1a1 star/galaxy done with modes class, therefore expect significant stellar contamination at 0.7<z<0.8 where stellar locus comes close to red sequence
+
 
 Systematics?
 -large PSFs remove size information (multiplicative bias - larger than for shear BCas13)
@@ -119,6 +151,128 @@ How to select LBGs?
 -compare galaxies to known high-z galaxies
 -have another check on fluxes (g flux cutoff for example)?
 -well-studied luminosity functions can give check on number density found?
+
+Using templates?
+-Davies et al 2013 paper created some templates in DES to see if DES
+will find high mass high redshift galaxies
+     -used Maraston's templates
+-I was using Bruzual & Charlot's GALAXEV code to try and make some red
+galaxy templates and LBG templates
+       -from paper (BC2003): ages between 10^5 and 2e10 yr, hi (3A, 3200-9500A)
+       and low (91A-160micron) resolution spectra available
+       	   -old technique was to reproduce spectrum as linear
+	   combination of individual stellar spectra
+	   -new technique "isochrone synthesis": expand star formation
+	   history in series of SSPs, uses stellar evolutionary tracks
+	   to interpolate isochrone, sum starts defining isochrone at
+	   age t and metallicity, use stellar spectral library to
+	   assigna individual stars along isochrone
+	   -chabrier (physically motivated, fits low mass and brown
+	   dwarfs) or salpeter imf
+	   -SED is normed to total mass of 1 solar mass in stars at
+	   age t=0
+	   -Padova 1994 or 2000 evolutionary tracks
+       -can tune metallicity (6 options), star formation history (SSP,
+       burst, Exp), age
+       -can make composite stellar pops, add dust
+       -get spectra, redshifted myself, because the csp outputs were
+       confusing
+       -tricky things: mass normalization, evolved magnitudes or not
+-Ezgal is a useful tool for using different template sets
+       -python
+       -gets rid of having to deal with the trickiness yourself
+       -can add SF, dust laws, or spectra yourself
+       -from paper (Mancone and Gonzalez 2012)
+              -allows comparison of different model sets so that uncertainty
+       	      can be quantified
+       	      -interpolate between metallicities
+      	      -BC2003/updated, Maraston, BaSTI, FSPS models
+      	      -models agree best in the optical for old, solar metallicity
+      	      models, differences at the ~0.1 mag level
+       	      -most problematic for ages <2Gyr and lambda > 7500A
+	      (TP-ABGs important), scatter here vary from 0.3 to 0.7
+	      mags -> redshift dependent model uncertainty    
+	      -e-corrections specify amount of observed magnitude
+	      evolution due to aging of stellar pop
+	      -k-corrections specify amount of evolution due to
+	      observing a different part of the SED at different
+	      redshifts
+	      -e+k-corrections and distance moduli specify the
+	      magnitude evolution of a stellar popuation as function
+	      of redshift
+	      -can use any cosmology
+	      -calculates stellar masses
+	      -extended star formation history smooths out scatter
+	      between models as function of age
+	      -TP-AGB stars can dominate light at long wavelengths and
+	      ages > 10^8 yrs, but mass loss not understood
+	      theoretically, unkown metallicities typically
+	      -scatter between models typically same or smaller for
+	      sub-solar metallicity b/c all these model sets compared
+	      or calibrated to match MW globular clusters, old and
+	      metal poor systems
+	      -for 3.6 microns, model scatter peaks in 1<z<3 range
+	      	   peak in models caused by uncertainty in modeling
+		   young stellar pops blueward of 4000A bbreak
+	      -uncertainties in SPS modeling depend sensitively on
+	      wavelength and age
+	      -lower limit on uncertainties because does not include
+	      systematic errors in assumptions or methodologies that
+	      are shared between all model sets
+-Adding attenuation by neutral hydrogen is the key to modelling LBGs.
+	-there are models from Madau (1995) and Meiksin (2006) which I
+	had trouble figuring out to implement on my own.
+	-people (Inoue & Iwata 2008, IGMtransmission - Harrison,
+	Meiksin, Stock 2011) have used monte carlo simulations to
+	model the absorption
+	-IGMtransmission
+		-java gui
+		-monte carlo sims over many lines or site, each color
+		independently or average
+		-a population of discrete, lyman limit systems are
+		drawn from dN/dz and dN/dtauL distributions placed
+		along random lines of sight and total contribution to
+		intergalactic transmission function calculated
+		(default or Inoue & Iwata LLS dist)
+		-includes mean contributions to opacity due to
+		ly-alpha forest and photoelectric absorption of
+		optically thin IGM
+		-LLSs number drawn from Poisson, each LLS random
+		value of z and tauL from dists
+
+How to measure magnification?
+-cross-correlation of lenses and sources, amplitude depends on
+magnitude cuts of sources
+-magnification estimate from counting sources and comparing to
+-Huff & Graves 2011:
+      -tight scaling relation between galaxy properties that are
+      modified by gravitational lensing and other properties that are
+      not
+      -ellipticities induced by lensing are small (~1%) compared to
+      intrinsic (~30%) but intrinsic variance in distribution of
+      galaxy sizes and luminosities much larger than shapes
+      -photometric fundamental plane: effective radius (Re), surface
+      brightness, and stellar velocity dispersion (fundamental plane), but dispersion hard
+      to measure, use concentration instead (both correlated with
+      galaxy mass, correlated with each other)
+      -select sample of early type background galaxies that should lie
+      on the photoFP
+      -SDSS petrosian concentration C=R90/R50
+      -Re is hlr of best fit deVauc profile
+      -fit photoFP separately in each deltaz=0.01 bin, 35% dispersion
+      in Re direction
+
+Previous Measurements?
+-"Detection of cosmic magnification with SDSS" Scranton et al 2005
+    -8sigma detection
+    -3800 sq deg, ~200k quasars, 13million galaxies
+    -quasars because large z-range and large z-segregation
+    -found excess of bright (g <~9) quasars & deficit of fainter ones
+    around galaxies
+    -for the first time, amplitude & angular dependence were found to
+    be in agreement with theory
+    -
+
 
 What is COSMOS?
 
@@ -248,6 +402,10 @@ Schneider et al 2014
 Mandelbaum et al 2005
 Amara & Refregier (2007) = systematic errors needed for accurate determination of cosmological parameters
 Kitching, Taylor, & Heavens (2008b) = "
+Bartelmann 1995 = formalism for magnification by lss first introduced
 Bartelmann 1995c = galaxy bias, magnification
 Crocce et al 2016 = SVA1 Gold catalog
 Chang et al 2015 = Modest_class, object obscuration (theta<10")
+Sanchez et al 2014 = DES SV photoz's
+Jain et al 2003 = prescription and notation of expected magnification
+bias signal
