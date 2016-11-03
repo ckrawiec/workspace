@@ -1,22 +1,109 @@
 import numpy as np
 import glob
+import os
 import esutil
-from astropy.table import Table, Column, vstack
+import matplotlib.pyplot as plt
+from astropy.table import Table, Column, vstack, join
 
 home_dir = '/home/ckrawiec/'
 
+y1a1_gold_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_flux_detmodel_MC1_*')
+y1_dfull = home_dir+'DES/data/y1a1_gold_dfull.fits'
+y1_match_file = home_dir+'DES/data/match_y1a1_gold_dfull_cosmos_1arcsec'
+
+cosmos_file = home_dir+'COSMOS/data/COSMOS2015_Laigle+_v1.1.fits'
+
+balrog_glob = home_dir + 'DES/data/balrog_y1a1_truth_index_z_*'
+balrog_output = home_dir + 'DES/data/balrog_y1a1_truth_index_z.fits'
+
+ngmix_dfull = home_dir + 'DES/data/DES0215-0458-y1a1-DFULL-mof-crucial-001.fits'
+ngmix_dfull_match = os.path.splitext(ngmix_dfull)[0]+'_match_cosmos_1arcsec'
+
+def maketables():
+#    makebalrog()
+#    chooseobjtype1(balrog_output)
+    matchwithcosmos(ngmix_dfull, ngmix_dfull_match)
+    
 def stackwrite(flist, output_file):
     tlist = [Table.read(table) for table in flist]
     new_table = vstack(tlist)
     del tlist
     new_table.write(output_file)
 
-#*********BALROG Y1A1 TRUTH/SIM INNER JOIN, DETMODEL FLUXES********    
-#balrog_tables = glob.glob('/home/ckrawiec/DES/data/balrog_y1a1_truth_sim_flux_detmodel_*')
-#stackwrite(balrog_tables, '/home/ckrawiec/DES/data/balrog_y1a1_truth_sim_flux_detmodel.fits')
+
+def matchwithcosmos(tab_file, match_file, nocosmos=False):
+    print "Matching {} with {} within 1 arcsec...".format(tab_file, cosmos_file)
+    ntab = Table.read(tab_file)
+    y1tab = Table.read(y1_dfull)
+
+    ntab.rename_column('id', 'COADD_OBJECTS_ID')
+    tab = join(ntab, y1tab, keys='COADD_OBJECTS_ID')
+
+    print ntab['COADD_OBJECTS_ID'][:10]
+    print len(tab)
+    print y1tab['COADD_OBJECTS_ID'][:10]
+    plt.scatter(tab['RA'], tab['DEC'])
+    plt.show()
+    exit()
+
+    cosmos = Table.read(cosmos_file)
+
+    h = esutil.htm.HTM(10)
+    h.match(tab['RA'], tab['DEC'],
+            cosmos['ALPHA_J2000'], cosmos['DELTA_J2000'],
+            radius=1./3600,
+            file=match_file)
+
+    m = h.read(match_file)
+
+    data_m, cosmos_m, merr = np.array(zip(*m))
+               
+    print " {} COSMOS/Y1 matches".format(len(cosmos_m))
+    print " No duplicates in matched list?:{}".format(len(data_m)==len(set(data_m)))
+
+    if nocosmos==True:
+        no_cosmos = list(set(range(0,len(tab)))-set(data_m))
+        new_data = tab[no_cosmos]
+        print "made new table without cosmos matches"
+        new_data.write(os.path.splitext(tab_file)[0]+'_no_cosmos.fits')
+
+        del new_data
+
+        print ' wrote new table'
+
+    data_m_int = [int(g) for g in data_m]
+    cosmos_m_int = [int(c) for c in cosmos_m]
+
+    new_cosmos = tab[data_m_int] 
+    del tab
+
+    print ' deleted old table'
+
+    new_cosmos.add_column(Column(name='photoz', data=cosmos['PHOTOZ'][cosmos_m_int]))
+    new_cosmos.add_column(Column(name='NUMBER', data=cosmos['NUMBER'][cosmos_m_int]))
+    new_cosmos.add_column(Column(name='ALPHA_J2000', data=cosmos['ALPHA_J2000'][cosmos_m_int]))
+    new_cosmos.add_column(Column(name='DELTA_J2000', data=cosmos['ALPHA_J2000'][cosmos_m_int]))
+    new_cosmos.add_column(Column(name='match_err', data=merr))
+
+    print ' made new cosmos table'
+
+    new_cosmos.write(os.path.splitext(tab_file)[0]+'_cosmos.fits')
+
+
+def makebalrog():
+    balrog_tables = glob.glob(balrog_glob)
+    stackwrite(balrog_tables, output)
+
+def chooseobjtype1(output):
+    t = Table.read(output)
+    tnew = t[t['OBJTYPE']==1]
+    del t
+    tnew.write(os.path.splitext(output)[0]+'_objtype1.fits')
+    
+maketables()
 
 #*********Y1A1 GOLD DFULL********
-#y1a1_gold_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_flux_detmodel_MC1_*')
+
 #tlist = []
 #for table in y1a1_gold_tables:
 #    tlist.append(Table.read(table))
@@ -33,51 +120,4 @@ def stackwrite(flist, output_file):
 #new_Y1_dfull.write('/home/ckrawiec/DES/data/y1a1_gold_dfull.fits')
 
 
-#*********Y1A1 GOLD DFULL/COSMOS MATCHED BY POSITION********
-cosmos = Table.read(home_dir+'COSMOS/data/COSMOS2015_Laigle+_v1.1.fits')
 
-y1 = Table.read(home_dir+'DES/data/y1a1_gold_dfull.fits')
-
-h = esutil.htm.HTM(10)
-h.match(y1['RA'], y1['DEC'],
-        cosmos['ALPHA_J2000'], cosmos['DELTA_J2000'],
-        radius=1./3600,
-        file=home_dir+'DES/data/match_y1a1_gold_dfull_cosmos_1arcsec')
-m = h.read(home_dir+'DES/data/match_y1a1_gold_dfull_cosmos_1arcsec')
-
-gold_m, cosmos_m, merr = np.array(zip(*m))
-
-print "{} COSMOS/Y1 matches".format(len(cosmos_m))
-
-print "matched"
-
-no_cosmos = list(set(range(0,len(y1)))-set(gold_m))
-
-print "No duplicates in matched list?:{}".format(len(gold_m)==len(set(gold_m)))
-
-new_y1 = y1[no_cosmos]
-
-print "made new Y1 table"
-
-new_y1.write(home_dir+'DES/data/y1a1_gold_dfull_no_cosmos.fits')
-del new_y1
-
-print "wrote new Y1 table"
-
-gold_m_int = [int(g) for g in gold_m]
-cosmos_m_int = [int(c) for c in cosmos_m]
-
-new_cosmos = y1[gold_m_int] 
-del y1
-
-print "deleted old Y1 table"
-
-new_cosmos.add_column(Column(name='photoz', data=cosmos['PHOTOZ'][cosmos_m_int]))
-new_cosmos.add_column(Column(name='NUMBER', data=cosmos['NUMBER'][cosmos_m_int]))
-new_cosmos.add_column(Column(name='ALPHA_J2000', data=cosmos['ALPHA_J2000'][cosmos_m_int]))
-new_cosmos.add_column(Column(name='DELTA_J2000', data=cosmos['ALPHA_J2000'][cosmos_m_int]))
-new_cosmos.add_column(Column(name='match_err', data=merr))
-
-print "made new cosmos table"
-
-new_cosmos.write(home_dir+'DES/data/y1a1_gold_dfull_cosmos.fits')

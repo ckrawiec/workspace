@@ -2,53 +2,76 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astropy.table import Table, join
 
-balrog = Table.read('/home/ckrawiec/DES/data/balrog_y1a1_truth_sim_flux_size.fits')
-
-mu = 1.02
-
-mag = Table.read('/home/ckrawiec/DES/magnification/balrog_mag_02.fits')
-
+mu = 1.04
+mag_file = '/home/ckrawiec/DES/magnification/balrog_y1a1_truth_noiseless_flux_size_objtype1_80M_mag_04.fits'
 filters = ['G','R','I','Z','Y']
 
+def makeplots():
+    fluxdiff()
+    sizediff()
+    Nvsdiffthresh()
+    
+balrog_file = '/home/ckrawiec/DES/data/balrog_y1a1_truth_noiseless_flux_size_objtype1.fits'
+
+mag = Table.read(mag_file)
+balrog = Table.read(balrog_file)
 new = join(balrog, mag)
 
 del balrog
 del mag
 
-"""
-plt.hist(new['D_MAG1.01'], bins=np.logspace(0,5,100))
-plt.xlabel('distance to nearest neighbor in truth tree')
-plt.xscale('log')
-plt.title('$\mu=1.01$')
-plt.savefig('/home/ckrawiec/DES/magnification/hist_balrog_d_mag_01')
-plt.close()
+def fluxdiff():
+    for filter in filters:
 
-match = np.where(new['INDEX_MAG1.01']==new['BALROG_INDEX'])
-gal = np.where(new['OBJTYPE']==1)
+        newflux = new['FLUX_NOISELESS_'+filter]*mu
+        foundflux = new['FLUX_NOISELESS_'+filter+'_MAG'+str(mu)]
+        diff = foundflux - newflux
+        
+        plt.hist(diff, bins=5000, histtype='step', label=filter)
 
-print # where nearest neighbor is same object: {}.format(len(match[0]))
+        plt.legend(loc='best')
+        plt.xlabel('$found flux - \mu * flux$')
+        plt.title('$\mu=$'+str(mu))
 
-print # where objtype=1 (galaxy): {}.format(len(gal[0]))
-"""
+    plt.xlim(-200,200)
+    plt.savefig('/home/ckrawiec/DES/magnification/balrog_diff_hist_mag_'+str(mu)[2:])
+    plt.show()
 
-for filter in filters:
+def sizediff():
+    newsize = new['HALFLIGHTRADIUS_0'] * np.sqrt(mu) 
+    foundsize = new['HALFLIGHTRADIUS_0_MAG'+str(mu)]
+    diffsize = foundsize - newsize
+    plt.hist(diffsize, bins=5000, histtype='step')
+    plt.xlabel('$found hlr - \mu^{1/2} * hlr$')
+    plt.xlim(-0.02,0.01)
+    plt.savefig('/home/ckrawiec/DES/magnification/balrog_diff_hlr_hist5000_mag_'+str(mu)[2:])
+    plt.close()
 
-    newflux = new['FLUX_NOISELESS_'+filter]*mu
-    foundflux = new['FLUX_NOISELESS_'+filter+'_MAG'+str(mu)]
-    diff = foundflux - newflux
+def Nvsdiffthresh():
+    thresholds = np.arange(0,10,0.1)
 
-    plt.hist(diff, bins=5000, histtype='step', label=filter)
+    for filter in filters:
+        newflux = new['FLUX_NOISELESS_'+filter] * mu
+        foundflux = new['FLUX_NOISELESS_'+filter+'_MAG'+str(mu)]
+        diff = foundflux - newflux
 
-plt.legend(loc='best')
-plt.xlabel('$found flux - \mu * flux$')
-plt.title('$\mu=$'+str(mu))
-#plt.savefig('/home/ckrawiec/DES/magnification/balrog_diff_hist_lin_mag_'+str(mu)[2:])
-plt.show()
+        N = [len(np.where(np.abs(diff) < thresh)[0]) for thresh in thresholds]
+        plt.plot(thresholds, N, label=filter)
 
-newsize = new['HALFLIGHTRADIUS_0']
-foundsize = new['HALFLIGHTRADIUS_0_'+str(mu)]
-diffsize = foundsize - newsize
-plt.hist(diffsize, bins=5000, histtype='step')
-plt.xlabel('$found hlr - \mu * hlr$')
-#plt.savefig('/home/ckrawiec/DES/magnification/balrog_diff_hlr_hist_mag'+str(mu)[2:])
-plt.show()
+    plt.xlabel('$|found flux - \mu * flux|$')
+    plt.ylabel('N')
+    plt.legend(loc='best')
+    plt.savefig('/home/ckrawiec/DES/magnification/balrog_N<diffthreshold_flux_mag_'+str(mu)[2:])
+    plt.close()
+
+    newsize = new['HALFLIGHTRADIUS_0'] * np.sqrt(mu)
+    foundsize = new['HALFLIGHTRADIUS_0_MAG'+str(mu)]
+    diffsize = foundsize - newsize
+    N = [len(np.where(np.abs(diffsize) < thresh)[0]) for thresh in thresholds]
+    plt.plot(thresholds, N)
+    plt.xlabel('$found hlr - \mu^{1/2} * hlr$')
+    plt.ylabel('N')
+    plt.savefig('/home/ckrawiec/DES/magnification/balrog_N<diffthreshold_hlr_mag_'+str(mu)[2:])
+    plt.close()
+
+makeplots()
