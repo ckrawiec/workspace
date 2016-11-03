@@ -51,15 +51,12 @@ def pwrapper(args):
     else:
         raise ValueError('Choose ptype=\'full\' or \'tree\'')
                 
-def p(vals, errs, truevals):
+def p(vals, errs, truevals, nchunks=500, ntruechunks=1000):
     """
     sum the gaussian likelihoods L(vals|truevals) over truevals using the errs on vals
     vals, errs, and truevals are lists or arrays of data/error vectors 
     """
     out = np.array([])
-
-    nchunks = 500
-    ntruechunks = 1000
 
     chunks = itertools.izip([vals[i:i+nchunks] for i in xrange(0, len(vals), nchunks)], 
                             [errs[i:i+nchunks] for i in xrange(0, len(vals), nchunks)])
@@ -141,8 +138,12 @@ def main(args):
     z = templates['photoz']
 
     #data vectors
-    data_zip = np.array( zip( *[data[data_type+'_detmodel_'+f][start_index:end_index] for f in filters] ) )
-    err_zip = np.array( zip( *[data[data_type+'err_detmodel_'+f][start_index:end_index] for f in filters] ) )
+    if 'ngmix' in data_file:
+        data_zip = np.array( zip( *[data['CM_'+data_type+'_'+f][start_index:end_index] for f in filters] ) )
+        err_zip = np.array( zip( *[np.sqrt(data['CM_'+data_type+'_COV_'+f+'_'+f][start_index:end_index]) for f in filters] ) )
+    else:
+        data_zip = np.array( zip( *[data[data_type+'_detmodel_'+f][start_index:end_index] for f in filters] ) )
+        err_zip = np.array( zip( *[data[data_type+'err_detmodel_'+f][start_index:end_index] for f in filters] ) )
 
     if 'balrog' in data_file:
         id_col_name = 'BALROG_INDEX'
