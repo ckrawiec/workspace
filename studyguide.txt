@@ -55,6 +55,10 @@ What is magnification?
 	-(using mu=1+2kappa approx.), cross-correlation between magnification & foreground matter
 	overdensity can be easily computed as function of matter power
 	spectrum (Scranton05)
+		 -signal can be separated into
+		 [alpha(m)-1]*w_0(theta), where w0 contains all info
+		 about nonlinear galaxy biasing and z dists (includes
+		 galaxy-dark matter cross-power spectrum) (Scranton05)
 	
 Shear vs. Magnification
 -magnification provides a cross-check to shear because they have different systematics (PSF anisotropy vs. photometric calibrations)
@@ -139,9 +143,16 @@ Systematics?
 	-accuracy for faint objects
 -local seeing can produce variation in apparent galaxy density
 -dust extinction - could be subdominant to signal
--redshift overlap (shouldn't be a problem here)
+-redshift overlap (shouldn't be a problem here) (intrinsic clustering
+has much larger signal than lensing)
 -estimation of density of faint sources around bright extended objects can be biased; induced by uncertainties in sky subtractions (Mandelbaum et al 2005) -> mask
 -obscuration
+-things that can effect observed source density (Scranton05)
+	-seeing variations
+	-masks around bright stars
+	-sky background subtraction problems around bright galaxies
+	-photometric accuracy - incompleteness can look like signal on
+	small scales
 
 How to select LBGs?
 -Use their distinct colors
@@ -271,8 +282,25 @@ Previous Measurements?
     around galaxies
     -for the first time, amplitude & angular dependence were found to
     be in agreement with theory
-    -
-
+    -use range of quasar magnitudes, average <alpha-1>
+    -lensing kernel is function of lens&source redshifts, so fit z
+    dists to both samples
+    -quasars in 1<photo-z<2.2 range
+    -fit simple HOD instead of evolving one (b/c small angular bins in
+    nonlinear regime of gravitational collapse) to calculate
+    matter-galaxy power spectrum
+    -DR3, 1.4" seeing limit, 0.2 extinction limit in r
+    -1 gal/sq arcmin
+    -petrosian magnitudes can see ~25% variation in gal density with
+    seeing for magnitude limited sample
+    -quasar data set generated using KDE (Richards et al 2004) -> colors for each new object
+    compared to those of each object in quasar/star training sets (in
+    4-d color space), binary class according to which has larger
+    probability of membership
+    -pair-based estimator similar to Landy-Szalay but modified for
+    cross-crelation
+    -30 jackknife samples to generate errors
+    -used optimally (alpha-1) weighted correlation function
 
 What is COSMOS?
 
@@ -375,6 +403,9 @@ BFD approach
 
 Questions:
 -what are "coherent" shears and magnifications
+-lensing kernel (function of lens/source redshifts) what pieces
+exactly
+-Manuel's magnification paper-> how calculate w0(theta)? (power spec)
 
 Reading:
 Ford 2012 & 2014 = magnification using LBGs and galaxy groups
