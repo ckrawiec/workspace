@@ -65,7 +65,12 @@ def fitsstack(table_list):
     
     check=[]
     for i in range(len(data)):
-        check.append(hdu.data[colname][sum(nrows[:i])]==data[i][colname][0])
+        new = hdu.data[colname][sum(nrows[:i])]
+        orig = data[i][colname][0]
+        if (np.isnan(new) or np.isnan(orig)):
+            check.append(True)
+        else:
+            check.append(hdu.data[colname][sum(nrows[:i])]==data[i][colname][0])
     if np.all(check):
         return hdu
     else:
