@@ -80,6 +80,9 @@ ground-based data(Hild 11)
 -magnification S/N typically lower for magnification than shear, but
 this can depend on the slope of background number counts - beneficial
 to choose steep slope (Hild 11)
+-ellipticities can be assumed to be intrinsically randomly
+distributed, but intrinsic distribution of fluxes has to be measured
+from data by averaging over large areas of sky (Hild 09)
 
 What should we use as lenses and sources?
 -Want cleanly separated samples
@@ -95,6 +98,7 @@ Why use LBGs?
 -narrow redshift range, well determined by colors
 -high lensing efficiency (comes from high-z)
 -LBGs can be used for DM halo studies (clustering)
+-much higher surface density on the sky than quasars (hild 09)
 
 What is an LBG?
 -lyman break at 912A
@@ -250,6 +254,9 @@ galaxy templates and LBG templates
 		optically thin IGM
 		-LLSs number drawn from Poisson, each LLS random
 		value of z and tauL from dists
+-"GaBoDS: The Garching-Bonn Deep Survey VIII. Lyman-break galaxies in 
+ the ESO Deep Publis Survey" Hildebrandt et al 2006
+
 
 How to measure magnification?
 -cross-correlation of lenses and sources, amplitude depends on
@@ -302,7 +309,44 @@ Previous Measurements?
     -30 jackknife samples to generate errors
     -used optimally (alpha-1) weighted correlation function
 
+-"CARS: The CFHTLS-Archive-Research Survey III. First detection of
+ cosmic magnification in samples of normal high-z galaxies"
+ Hildebrandt, van Waerbeke, and Erben 2009
+ 	      ->80k LBG candidates with z=2.5-5 selected from Deep
+ part of CFHTLS
+      -Data from CFHTLS-Deep Survey, ugriz, four independent fields of
+ 1 sq deg each
+   -sims set up to identify regions in 2-color-space where high-z
+ sources can be selected with high efficiency and low contamination
+ 	 -34k u-dropouts (z~3.2) 36k g-dropouts (z~3.8), 10k
+ r-dropouts, z~4.7
+ 	     -g-dropouts contaminated by small frac (4%) of low-z gals
+ with redshifts 0<z<0.5
+      -r-dropouts contam. by 0.5<z<1.0 (2.5%)
+      -(know redshifts of possible contaminants - do they mean 4000A
+ break?)
+	-incompleteness at faint end prevents measurement of slope of
+ # counts -> can use external LBG-LF that has been corrected for
+ incompleteness
+	-otherwise, measurements agree with external LF's
+	-foreground sample selected with photo-z's, BPZ
+	-intervals [0.1,1.0],[0.5,1.4],[0.1,0.5]U[1.0,1.4]
+	-modified Landy & Szalay
+	-halos of bright stars & low-S/N regions masked -> loss of 30%
+ area but highly uniform dataset with homog. det. and sel. efficiency
+	-sources are weighted by alpha-1 according to expectation from
+ LF
+	-cross-correlation is estimated separately for each of 4
+ fields, calc the mean
+ 	 -draw 10 jack-knife samples
+	 -magnitude bins chosen to show pos and neg correlations, see
+ negative correlation that cannot be from redshift overlap
+ 	  -signal is underestimated by the theory
+	  -good qualitative agreement with predictions
+ 
+
 What is COSMOS?
+
 
 
 What problems could I have?
@@ -397,7 +441,9 @@ problems?
 	-if use BFD fluxes, how does Balrog usage change
 	    -detection still ok, but change in measured flux not helpful?
 	    -BFD uses fixed aperture, SE does not -well, maybe can use fixed aperture fluxes from SE? aren't they reported?
-
+	-Balrog Y1A1 does not appear to cover whole footprint - could
+	use SV instead...?
+	
 BFD approach
     -uses fluxes instead of number densities
 
