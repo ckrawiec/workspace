@@ -158,6 +158,29 @@ has much larger signal than lensing)
 	-photometric accuracy - incompleteness can look like signal on
 	small scales
 
+-"Measuring gal-mass & gal-dust correlations through magnification &
+ reddening" Menard et al 2010
+ 	    -~85k quasars at z >1, 24mil gals @ z ~0.3
+	    -<Av> ~ 0.03 mag up to z=0.5
+	    -dust reddening: info on ife cycles of particles & opacity
+ of universe
+		-need to measure brightness/color changes at sub%
+ level on 100kpc scales
+       -fobs = f0 * mu* e^(-tau*lambda)
+       -dust extinction is wavelength-dependent
+       -reddening can cause quasars to drop out of selection criteria
+ b/c their ID Is a fn of colors = measure lower reddening excess
+     -SDSS DR3 ugriz ~3800 sq deg 24mil gals 17<i<21 1.8 gal/arcmin^2
+     -measure density of gals, and compute correlation with magnitude
+ of bg quasars
+    -observe that quasar brightness shifts and gal. overdensities are
+ anticorrelated
+ -quasars brighter when closer to gals, mag doms over extinction
+ 	  -systematically larger amplitude in redder band (dust?)
+    -want to constrain spatial dist of dust on large scales around
+ gals - can help quanitify intrinsic brightness of bg sources - type
+ 1a SNe
+
 How to select LBGs?
 -Use their distinct colors
      -u-dropouts = z>3
@@ -254,6 +277,7 @@ galaxy templates and LBG templates
 		optically thin IGM
 		-LLSs number drawn from Poisson, each LLS random
 		value of z and tauL from dists
+
 -"GaBoDS: The Garching-Bonn Deep Survey VIII. Lyman-break galaxies in 
  the ESO Deep Publis Survey" Hildebrandt et al 2006
 
@@ -324,7 +348,7 @@ Previous Measurements?
  with redshifts 0<z<0.5
       -r-dropouts contam. by 0.5<z<1.0 (2.5%)
       -(know redshifts of possible contaminants - do they mean 4000A
- break?)
+ break?) - avoid the contam. redshift regions in lens samples
 	-incompleteness at faint end prevents measurement of slope of
  # counts -> can use external LBG-LF that has been corrected for
  incompleteness
@@ -343,7 +367,41 @@ Previous Measurements?
  negative correlation that cannot be from redshift overlap
  	  -signal is underestimated by the theory
 	  -good qualitative agreement with predictions
- 
+
+-"Lensing magnification: A novel method to weigh high-z clusters"
+	  -LBGs from the wide CFHTLS survey instead of DEEP
+	  -used incompleteness function from comparing DEEP N_LBG to
+	  -wide, multiplied by LF measured by van der Burg et al 2010,
+	  -artificially magnified same LF for different mus, and
+	  -multipy again by un-magged incompleteness, compared
+	  -numbers in magnitude bins
+
+-"Tomographic Magnification of LBGs in the Deep Lens Survey" Morrison
+ et al 2012
+    -450k galaxies, z>4 LBGs, foreground 0.4<z<1.0 split into 7 z bins
+    -tomo bins - observe geometric expansion of universe and growth of
+ structure as fn of time
+    -mag has been done for LBGs, sub-mm, groups, clusters
+    -different mag techniques: number density, brightness change, size
+ change, qso variability
+    -cross-corr could give z-dependent biases - normatlize by observed
+ fg sample autocorr
+    -overdensity of sources related to delta mu, correlation of
+ sources, lens gals depends on kappa-galaxy corr
+    -assuming constant bias
+    	      -bias depends on galaxy type, brightness, mass, all
+ could vary with redshift
+    -assume density of galaxies follows DM density as bias * density
+    -remove (linear) gal bias
+    	    -autocorr ratio ind. of bias
+    -4 bands BVRz  in DLS
+       -20 sq deg, 5-4 sq deg fields
+       -MOSAIC imagers R,V band seeing ~1"
+       -20<m_R<24, BPZ photo-z's, PRIMUS cross-check
+       -15 z bins of equal likelihood
+       	   -select if Pi > 0.16, then weight by Pi, also optimally
+ weight fg gals by expected lensing efficiency (DlDls/Ds) (geometric)
+       -no z-bin smaller than expected scatter of ~0.06
 
 What is COSMOS?
 
@@ -373,6 +431,23 @@ Checks
 -w
 -power spectra
 -omega matter, sigma 8
+-initial overdensities 1 part in 10^5, if overdense region is dense
+enough, gravity wins over pressure and grows with time
+-epoch of recombination z~1100, before=photons tightly coupled to
+electrons and protons=single fluid ("baryon-photon" fluid)
+-after recomb, photons free-streamed from "surface of last scattering"
+to us today
+-polarization=intensity differs along E & B directions
+-weak lensing/polarization are probes or clustering in space and
+redshift which can tell us about inhomog. and anisotropies with tell
+us about cosmology
+-biasing from shear & magnification
+-matter density from LSS
+-omegaM and sigma8 (normalization of power spectrum) from fitting
+models to cosmic shear correlation functions, which also depend on
+omegaL and shape of spectrum and redshift distributions
+-cosmic shear amplitude to first order ~sigma8*omegaM^0.5
+-cosmic shear probes lower z and scales than CMB
 
 #Dark Energy
 
@@ -486,3 +561,37 @@ Chang et al 2015 = Modest_class, object obscuration (theta<10")
 Sanchez et al 2014 = DES SV photoz's
 Jain et al 2003 = prescription and notation of expected magnification
 bias signal
+
+Outline for oral presentation:
+
+	Motivation
+	Weak Lensing theory
+	Cosmology from weak lensing
+	Shear vs. magnification
+	      S/N, systematics
+	More magnification (specifics)
+	Past measurements of magnification
+	DES
+	    basics
+	    size/depth of data available
+	Past work of mine:
+	     Accelerometer - in context of accurate shapes and sizes
+	     BFD - what it is, simulations, matched-aperture
+	pre-seeing fluxes
+	     MOF - deblending + mutli-epoch, multi-band BFD fluxes for my measurement
+	DES data
+	    redmagic lenses
+	    selecting LBGs, using COSMOS
+	    results so far
+	Measurement
+		SNR
+		Balrog - any results so far?
+	To do/Future - 
+	Timeline?
+
+Past work first
+describe BFD, deep templates, accounting for errors
+Ok to not have stuff working yet
+practice next week
+	
+	    
