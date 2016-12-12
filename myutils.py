@@ -76,3 +76,8 @@ def fitsstack(table_list):
     else:
         raise ValueError('Something went wrong')
 
+def writefitsstack(infiles, outfile):
+    hdu = fitsstack(infiles)
+    pri_hdu = fits.PrimaryHDU()
+    hdu_list = fits.HDUList([pri_hdu, hdu])
+    hdu_list.writeto(outfile)
