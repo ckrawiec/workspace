@@ -9,18 +9,18 @@ import pandas as pd
 from myutils import fitsstack
 
 base_name = 'zprob_SV_z25_3bins_sigma_tree_griz'
-#'zprob_balrog_y1a1_z25_3bins_sigma_tree_griz'
-#
+#'zprob_balrog_sva1_z25_3bin_sigma_tree_griz'
 #'zprob_Y1_z25_3bins_sigma_tree_griz'
+#'zprob_balrog_y1a1_z25_3bins_sigma_tree_griz'
+
 
 zsrc = [2.5, 9.9]
 zlens = [0.001, 0.8]
 zother = [0.8,2.5]
 
 d_file = '/home/ckrawiec/DES/data/sva1_gold_detmodel_MC1_good_regions_no_cosmos.fits'
+#'/home/ckrawiec/DES/data/y1a1_gold_mag_detmodel_MC1.fits'
 #'/home/ckrawiec/DES/data/balrog_y1a1_truth_sim_flux_detmodel.fits'
-#y1a1_gold_mag_detmodel_MC1.fits
-
 
 red_file = '/home/ckrawiec/DES/data/y1a1_gold_1.0.2b-full_redmapper_v6.4.11_redmagic_highdens_0.5-10.fit'
 
@@ -33,9 +33,10 @@ def makeplots():
 #    NvsPcut()
 #    radecscatter(0.6)
 #    histmagi(0.6)
+    histmagislope(0.6)
 #    redmagiccount(0.6)
 #    histhexbin()
-    hexbinPsrcmeanNorm()
+#    hexbinPsrcmeanNorm()
 #    balrogzhist(0.8)
         
 def writefitsstack(infiles, outfile):
@@ -78,7 +79,7 @@ ra, dec = tab['RA'], tab['DEC']
 
 Psrc = tab['P'+str(zsrc)]
 Plens = tab['P'+str(zlens)]
-Pother = tab['P'+str(zother)]
+#Pother = tab['P'+str(zother)]
 
 if 'balrog' in base_name:
     redshift = tab['Z']
@@ -91,16 +92,46 @@ y1main = (dec < -35)
 
 notnan = ~np.isnan(Plens) & ~np.isnan(Psrc)
 
+def histmagislope(cut):
+    h = plt.hist(i[spte & (Psrc>cut) & (i>17) & (i<28)], histtype='step', bins=20, label='SPT-E')
+    plt.yscale('log')
+
+    dx = np.gradient(h[1][:-1])
+    logs = np.log10(h[0])
+    alphas = 2.5 * np.gradient(logs, dx)
+    
+    plt.plot(h[1][:-1], alphas, label='alpha')
+    plt.xlim(17,28)
+    plt.legend(loc='upper left')
+    plt.xlabel('mag_detmodel_i')
+    plt.title('P(z > {}) > {}'.format(zsrc[0], cut))
+    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_hist_mag_i_diffslope_Pcut_src'.format(base_name))
+    plt.close()
+
+
 def histmagi(cut):
-    plt.hist(i[Psrc>cut], histtype='step', bins=100, label='all')
-    plt.hist(i[spte & (Psrc>cut)], histtype='step', bins=100, label='SPT-E')
-    plt.hist(i[cosmos & (Psrc>cut)], histtype='step', bins=100, label='COSMOS')
-    plt.hist(i[y1main & (Psrc>cut)], histtype='step', bins=100, label='y1a1 main')
+    plt.hist(i[Psrc>cut], histtype='step', bins=1000, label='all')
+    plt.hist(i[spte & (Psrc>cut)], histtype='step', bins=1000, label='SPT-E')
+#    plt.hist(i[cosmos & (Psrc>cut)], histtype='step', bins=1000, label='COSMOS')
+#    plt.hist(i[y1main & (Psrc>cut)], histtype='step', bins=1000, label='y1a1 main')
+    plt.yscale('log')
     plt.xlim(17,26)
     plt.legend(loc='upper left')
     plt.xlabel('mag_detmodel_i')
     plt.title('P(z > {}) > {}'.format(zsrc[0], cut))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_hist_mag_i_Pcut'.format(base_name))
+    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_hist_mag_i_Pcut_src'.format(base_name))
+    plt.close()
+
+    plt.hist(i[Plens>cut], histtype='step', bins=1000, label='all')
+    plt.hist(i[spte & (Plens>cut)], histtype='step', bins=1000, label='SPT-E')
+#    plt.hist(i[cosmos & (Psrc>cut)], histtype='step', bins=1000, label='COSMOS')
+    plt.hist(i[y1main & (Plens>cut)], histtype='step', bins=1000, label='y1a1 main')
+    plt.yscale('log')
+    plt.xlim(17,26)
+    plt.legend(loc='upper left')
+    plt.xlabel('mag_detmodel_i')
+    plt.title('P({} < z < {}) > {}'.format(zlens[0], zlens[1], cut))
+    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_hist_mag_i_Pcut_lens'.format(base_name))
     plt.close()
 
 
@@ -168,10 +199,10 @@ def NvsPcut():
     nspte = np.array([len(Psrc[spte & (Psrc>icut)]) for icut in Pcut])
     ny1main = np.array([len(Psrc[y1main & (Psrc>icut)]) for icut in Pcut])
     
-    plt.plot(Pcut, ncosmos, c='g', label='$P(z>'+str(zsrc[0])+') > P_{cut}$ in COSMOS area')
+#    plt.plot(Pcut, ncosmos, c='g', label='$P(z>'+str(zsrc[0])+') > P_{cut}$ in COSMOS area')
     plt.plot(Pcut, nspte, c='r', label='$P(z>'+str(zsrc[0])+') > P_{cut}$ in SPT-E area')
-    plt.plot(Pcut, ny1main, c='b', label='$P(z>'+str(zsrc[0])+') > P_{cut}$ in Y1A1 main area')
-    plt.plot(Pcut, nsrc, c='k', label='$P(z>'+str(zsrc[0])+') > P_{cut}$')
+#    plt.plot(Pcut, ny1main, c='b', label='$P(z>'+str(zsrc[0])+') > P_{cut}$ in Y1A1 main area')
+#    plt.plot(Pcut, nsrc, c='k', label='$P(z>'+str(zsrc[0])+') > P_{cut}$')
     plt.yscale('log')
     plt.xlabel('$P_{cut}$')
     plt.ylabel('N')
@@ -198,8 +229,8 @@ def radecscatter(cut):
     plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_ra_dec_Y1A1_main'.format(base_name))
 
     #SPT-E
-    plt.xlim(50, 99)
-    plt.ylim(-65, -40)
+    plt.xlim(60, 95)
+    plt.ylim(-62.3, -42)
     plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_ra_dec_SPTE'.format(base_name))
 
     #COSMOS
