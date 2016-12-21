@@ -18,9 +18,11 @@ zother = [0.8, 2.5]
 Plow, Phigh, Pother, truthz, ra, dec = [],[],[],[],[],[]
 
 def main():
+    #plotStats()
+    printStats()
     #radec()
-    Phightruthz()
-    truthzhist(0.6)
+    #Phightruthz()
+    #truthzhist(0.6)
 
 for num in num_list:
     zprob = Table.read(zprob_file.format(num))
@@ -43,6 +45,34 @@ Plow = np.hstack(Plow)
 Phigh = np.hstack(Phigh)
 Pother = np.hstack(Pother)
 truthz = np.hstack(truthz)
+
+def plotStats():
+    truthzCutHist(Plow, zlens)
+    truthzCutHist(Phigh, zsrc)
+    truthzCutHist(Pother, zother)
+
+def truthzCutHist(Pgrp, zgrp):
+    zmask = (truthz>np.min(zgrp)) & (truthz<np.max(zgrp))
+    for cut in np.arange(0,1.0,0.2):
+        plt.hist(truthz[zmask & (Pgrp>cut)], histtype='step', label='P({})>{}'.format(zgrp, cut))
+    plt.xlabel('truth z')
+    plt.yscale('log')
+    plt.legend(loc='best')
+    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/balrog_sva1_truthz_{}cut_hist.png'.format(zgrp))
+    plt.close()
+
+    for cut in np.arange(0,1.0,0.2):
+        plt.hist(truthz[Pgrp>cut], histtype='step', label='P({})>{}'.format(zgrp, cut))
+    plt.xlabel('truth z')
+    plt.yscale('log')
+    plt.legend(loc='best')
+    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/balrog_sva1_truthz_{}cut_hist_allz.png'.format(zgrp))
+    plt.close()
+
+def printStats():
+    print "Number of galaxies with truth z > 2.5: ", len(truthz[truthz>2.5])
+    print "Number of galaxies with truth z > 2.5 & Phigh > 0.7: ", len(truthz[(truthz>2.5) & (Phigh>0.7)])
+    print "Number of galaxies with Phigh > 0.7: ", len(truthz[Phigh>0.7])
 
 def radec():    
     plt.scatter(np.hstack(ra), np.hstack(dec), edgecolor='none')
