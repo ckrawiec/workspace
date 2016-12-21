@@ -19,8 +19,9 @@ Plow, Phigh, Pother, truthz, ra, dec = [],[],[],[],[],[]
 
 def main():
     #radec()
-    Phightruthz()
-    truthzhist(0.6)
+    #Phightruthz()
+    #truthzhist(0.6)
+    checkImposters(cut=0.8)
 
 for num in num_list:
     zprob = Table.read(zprob_file.format(num))
@@ -39,10 +40,21 @@ for num in num_list:
     ra.append(tab['RA'])
     dec.append(tab['DEC'])
 
+    g.append(tab['FLUX_DETMODEL_G'])
+    r.append(tab['FLUX_DETMODEL_R'])
+    i.append(tab['FLUX_DETMODEL_I'])
+    z.append(tab['FLUX_DETMODEL_Z'])
+
+
 Plow = np.hstack(Plow)
 Phigh = np.hstack(Phigh)
 Pother = np.hstack(Pother)
 truthz = np.hstack(truthz)
+
+g = np.hstack(g)
+r = np.hstack(r)
+i = np.hstack(i)
+z = np.hstack(z)
 
 def radec():    
     plt.scatter(np.hstack(ra), np.hstack(dec), edgecolor='none')
@@ -77,6 +89,22 @@ def truthzhist(cut):
     plt.legend(loc='best')
     plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/zprob_balrog_sva1_z25_3bins_sigma_tree_griz_z_hist')
     plt.close()
+
+def checkImposters(cut):
+    wrong = (Phigh>cut) & (truthz<zsrc.min()) & (truthz>zsrc.max())
+    right = (Phigh>cut) & (truthz>zsrc.min()) & (truthz>zsrc.min())
+    nfilt = range(4)
+    ncheck = 10
+    for ni in range(ncheck):
+        plt.plot(nfilt, [g[wrong][ni], r[wrong][ni], i[wrong][ni], z[wrong][ni]], c='r')
+        plt.plot(nfilt, [g[right][ni], r[right][ni], i[right][ni], z[right][ni]], c='g')
+    plt.xlabel('filter')
+    plt.ylabel('flux_detmodel')
+    plt.title('red=wrong, green=right, cutoff: P>'+str(cut))
+    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/zprob_balrog_sva1_z25_3bins_sigma_tree_griz_wrongright_fluxes')
+    plt.close()
+    
+#plot fluxes of nearest COSMOS
 
 if __name__=="__main__":
     main()
