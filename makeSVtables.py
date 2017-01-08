@@ -55,6 +55,7 @@ del sva1_gold
 print "deleted old SV table"
 
 new_cosmos.add_column(Column(name='photoz', data=cosmos['PHOTOZ'][cosmos_m_int]))
+new_cosmos.add_column(Column(name='zminchi2', data=cosmos['ZMINCHI2'][cosmos_m_int]))
 new_cosmos.add_column(Column(name='match_err', data=merr))
 
 print "made new cosmos table"
