@@ -19,6 +19,30 @@ What else can we learn?
 -cosmology from correlation functions
 -galaxy bias?
 
+"Cosmological information from quasar-galaxy correlations induced by
+weak lensing" Menard & Bartelmann 2002
+     -amplitude and angular shape of the cross-correlation function
+     between galaxies and quasars contain information on cosmological
+     parameters and galaxy bias factor
+     -galaxies are biased tracers of dark matter, if positive bias,
+     number density is higher in matter overdensities
+     -if no overlap in redshift between quasar and gal pops,
+     QSO-galaxy cross-correlation is exclusively due to lensing
+     -wkd is cross-corr between lensing convergence k and suitably
+     weighted projected density contrast d. convergence itself is
+     weightd proj of density contrast so corr func is
+     straightforwardly related to projected dark-matter power spectrum
+     -cross-corr insensitive to stochasitity of bias
+     -cross-corr describes statistical excess of quasars around
+     galaxies with respect to Poisson distribution
+     -linear approximation underestimates correlation amplitude on
+     arc-minute scales by about order of magnitude
+     -variation of wkd with O_lam for given density param is <10%
+     -due to nonlinear evolution of power spectrum sig8 changes
+     amplitude AND shape, similarly O_m affects nonlinear evo of power
+     spec and also changes shape
+     -sig8^2 reflects normalization of power spec, Om from poisson eq
+
 How does lensing work?
 -surface brightness is conserved 
 -deflection described by null geodesics
@@ -38,7 +62,13 @@ What is shear?
 -shape distortions
 -ellipticity distribution has rms 0.3-0.4 (B. Casaponsa et al 2013)
 -reduced shear = gamma/(1-kappa), this represents the shape change while ignoring size
--reduced shear is invariant under transformation of distortion matrix by scalar multiple (mass-sheet degeneracy)
+-reduced shear is invariant under transformation of distortion matrix
+by scalar multiple (mass-sheet degeneracy)
+-bart & schneider 2001:
+   -accuracy of shear estimate improved when lens z becomes fair frac
+   of mean src z
+   -noise in local determination of shera due to correlated gal z's
+   does not decrease with N
 
 What is magnification?
 -quanitified by inverse of determinant of jacobian mu=1/detA
@@ -59,6 +89,13 @@ What is magnification?
 		 [alpha(m)-1]*w_0(theta), where w0 contains all info
 		 about nonlinear galaxy biasing and z dists (includes
 		 galaxy-dark matter cross-power spectrum) (Scranton05)
+-b&s 2001:
+     -flux correlated with redshift: z-dist is changed
+     -obtain estimation of local surface mass density from mu+g
+     -seeing affects shape + size more than flux
+     -size & flux need accurate photometry
+     -mag could give tighter contraints on slope of mass profiles,
+     shear gives more accurate amplitudes
 	
 Shear vs. Magnification
 -magnification provides a cross-check to shear because they have different systematics (PSF anisotropy vs. photometric calibrations)
@@ -108,9 +145,9 @@ What is an LBG?
 -they are at high redshift, so the lyman break is detectable by ground or space telescopes
       -912A is far UV and would be blocked by Earth's atmosphere
 -different contributions to absorption (Meiksin 2009)
-	-Ly-alpha forest absorbers (NHI < 10^17/cm^2) = most common
+	-Ly-alpha forest absorbers (NHI < 10^17/cm^2) =optically thin, most common
 	-Lyman Limit Systems (10^17<NHI<10^20) = dense enough to
-	absorb photons above lyman limit (photoelectric edge)
+	absorb photons above lyman limit (photoelectric edge), rarer
 	-Damped Ly-alpha absorbers (NHI>10^20) = rarest, most easily
 	identifiable in spectra
 	-two main effects for attentuation of distant light source are
@@ -119,6 +156,9 @@ What is an LBG?
 	-additional contributions from intervening metal systems and
 	helium (discrete and clumpy, predict mean amount and model
 	statistical fluctutions - IGMtrans2011)
+	-much absorbing material in discrete systems (Madau 1995)
+	-ly-alpha thin clouds evolve rapidly 1.8<z<3.8 (madau 1995)
+		  LLS consistent with no evo. on 0.7<z<3.6
 
 What about lenses?
 -use red galaxies because they have well-determined redshift
@@ -157,6 +197,9 @@ has much larger signal than lensing)
 	-sky background subtraction problems around bright galaxies
 	-photometric accuracy - incompleteness can look like signal on
 	small scales
+-poisson noise doms signal <~0.01, signal at larger angular bins
+correlated with each other since sources sample same lens field
+
 
 -"Measuring gal-mass & gal-dust correlations through magnification &
  reddening" Menard et al 2010
@@ -403,9 +446,17 @@ Previous Measurements?
  weight fg gals by expected lensing efficiency (DlDls/Ds) (geometric)
        -no z-bin smaller than expected scatter of ~0.06
 
+What templates to use?
+-spec matched to DFULL (SN, VVDS, COSMOS) for y1, but not as many as
+-~1mag deeper than nominal depth
+-400k in SV COSMOS
+photo matched cosmos, SN might be worth looking at however, especially
+if not using in source selection, could combine with cosmos??
+
 What is COSMOS?
-
-
+-survey with photometry in 30 bands
+-photo-z's determined for catalog
+template fitting
 
 What problems could I have?
 -low-z galaxies have 4000A break (old ones, from heavy metal absorption) that can look like Lyman break
@@ -431,6 +482,8 @@ Checks
 -w
 -power spectra
 -omega matter, sigma 8
+-sigma measures amplitude of linear power spectrum at 8 Mpc/h scale
+       -if too low, could mean gals didn't have enough time to form?
 -initial overdensities 1 part in 10^5, if overdense region is dense
 enough, gravity wins over pressure and grows with time
 -epoch of recombination z~1100, before=photons tightly coupled to
@@ -593,5 +646,60 @@ Past work first
 describe BFD, deep templates, accounting for errors
 Ok to not have stuff working yet
 practice next week
-	
+
+
+Galaxies notes:
+-pop I = young, pop II = old
+-lam_obs = (1+z) lam_rest
+-more DE = older universe
+-dL = dp (1+z)
+-dA = dp/(1+z)
+-90+% of stars in MS
+-can tell age of cluster by MS turnoff
+-stars > ~100Msun li very short lives (rare)
+-star doppler 100-350 km/s
+-age-metallicity degeneracy, metals = red
+		 break by looking at depth of lines
+		 diff elements take time to get to fusing
+-A star ~ 100 mil yr
+-Sun ~ 10 bil yr
+-high mass ~10 mil yr
+-black hole Rs = 2GM/c^2
+-MW disk size ~100k ly
+-nucleus = central region (<10pc)
+-dark halo dominates mass and potential
+      outside ~10kpc
+-typical M/L ~ 10-20 Msun/Lsun
+-MW 30kpc across
+-spirals M -16 -23
+	 10^9-fewx10^12Msun
+	 3/4 of big gals in field are spirals
+-ellips 20% of big field gals
+	effective radii, few tenths-10s kpc
+	M from -10 to -25
+	masses 10^7 to 10^13-10^14 msun
+-clusters hundreds to thousands of galaxies
+	  10^14-10^15 Msun
+
+Cosmology notes:
+-rho_crit = 1.88e-29 h^2 g/cm^3 = 2.78e11 h^2 Msun/Mpc^3
+-Equation of state P = w * rho * c^2
+	  -pressure-free matter w=0
+	  -radiation w=1/3
+	  -vacuum w = -1
+	  -w<-1/3 = accelerating
+-observationally: O_m = 0.27, O_lam=0.73, OR = 4.2e-5/h^2, k=0
+-domination: RAD, then MAT, now VAC
+-aEQ = 3e-4
+-RAD: a ~ t^1/2
+-MAT: a~t^2/3, Om=1 -> t = 2/3 / H0
+-VAC: a ~ exp(~t)
+-age = 1/H0 if expanding at const rate = 9e9 yr
+-static model not stable to small perturbations
+-objects appear as diferent sizes in differentl curved spaces
+-correlation function = fourier transform of power spectrum
 	    
+Gillis & Taylor
+-mu estimator easier to use for mass mapping
+-errors from standard deviation of different annuli/lens source pairs
++standard error on set of annuli
