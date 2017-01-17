@@ -51,14 +51,24 @@ def gauss_test():
 
     start_scipy = time.time()
     for datum, err in itertools.izip(data, errs):
-        scipy_result.append(np.sum(stats.multivariate_normal.pdf(truth, mean=datum, cov=err**2.)))
-    end_scipy = time.time()
 
+        scipy_result.append(np.sum(stats.multivariate_normal.pdf(truth, mean=datum, cov=err**2.)))
+        end_scipy = time.time()
+        
     start_p = time.time()
     p_result = zp.p(data, errs, truth)
     end_p = time.time()
     
-    print "Maximum (absolute) difference between scipy.stats result and p result: ", np.max(np.abs(scipy_result-p_result))
+    scipy_result = np.array(scipy_result)
+
+    diff = np.max(np.abs(scipy_result-p_result))
+    diff_where = np.where(np.abs(scipy_result-p_result)==diff)
+
+    print "Min, max of scipy result: {}, {}".format(np.min(scipy_result), np.max(scipy_result))
+    print "Min, max of p result: {}, {}".format(np.min(p_result), np.max(p_result))
+    print "Maximum (absolute) difference between scipy.stats result and p result: ", diff
+    print "Scipy/P result for max difference: ", scipy_result[diff_where], p_result[diff_where]
     print "Time for scipy: {}, time for p: {}".format(end_scipy-start_scipy, end_p-start_p)
+
 
 run_tests()
