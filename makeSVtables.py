@@ -5,8 +5,10 @@ import esutil
 
 home_dir = '/Users/Christina/'
 
-sva1_gold = Table.read(home_dir+'DES/data/sva1_gold_detmodel_gals.fits')
+sva1_gold = Table.read(home_dir+'DES/data/sva1_gold_auto.fits')
 cosmos = Table.read(home_dir+'COSMOS/data/COSMOS2015_Laigle+_v1.1.fits')
+
+base_output = 'DES/data/sva1_gold_auto'
 
 print "loaded files"
 
@@ -37,12 +39,12 @@ no_cosmos = list(set(range(0,len(sva1_gold[good,])))-set(gold_m))
 
 print len(gold_m)==len(set(gold_m))
 
-#new_sv = sva1_gold[good,][no_cosmos]
+new_sv = sva1_gold[good,][no_cosmos]
 
-#print "made new SV table"
+print "made new SV table"
 
-#new_sv.write(home_dir+'DES/data/sva1_gold_detmodel_MC1_good_regions_no_cosmos.fits')
-#del new_sv
+new_sv.write(home_dir+base_output+'_good_regions__no_cosmos.fits')
+del new_sv
 
 print "wrote new SV table"
 
@@ -60,4 +62,4 @@ new_cosmos.add_column(Column(name='match_err', data=merr))
 
 print "made new cosmos table"
 
-new_cosmos.write(home_dir+'DES/data/sva1_gold_detmodel_MC1_good_regions_cosmos.fits')
+new_cosmos.write(home_dir+'_good_regions_cosmos.fits')
