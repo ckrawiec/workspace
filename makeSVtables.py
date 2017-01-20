@@ -43,7 +43,7 @@ new_sv = sva1_gold[good,][no_cosmos]
 
 print "made new SV table"
 
-new_sv.write(home_dir+base_output+'_good_regions__no_cosmos.fits')
+new_sv.write(home_dir+base_output+'_good_regions_no_cosmos.fits')
 del new_sv
 
 print "wrote new SV table"
@@ -56,10 +56,12 @@ del sva1_gold
 
 print "deleted old SV table"
 
+new_cosmos.add_column(Column(name='NUMBER', data=cosmos['NUMBER'][cosmos_m_int]))
 new_cosmos.add_column(Column(name='photoz', data=cosmos['PHOTOZ'][cosmos_m_int]))
 new_cosmos.add_column(Column(name='zminchi2', data=cosmos['ZMINCHI2'][cosmos_m_int]))
+new_cosmos.add_column(Column(name='TYPE', data=cosmos['TYPE'][cosmos_m_int]))
 new_cosmos.add_column(Column(name='match_err', data=merr))
 
 print "made new cosmos table"
 
-new_cosmos.write(home_dir+'_good_regions_cosmos.fits')
+new_cosmos.write(home_dir+base_output+'_good_regions_cosmos.fits')
