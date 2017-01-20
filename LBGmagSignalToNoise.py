@@ -18,12 +18,12 @@ Ol = 0.7
 #data
 #density of Y1A1 "High Density Catalog" (0.1<z<0.7) (reliable out to 0.65) ~1.0e-3 Mpc^-3
 #same for redmagic Faint in SVA1, according to Rozo et al 2015 (1.0 1/h /Mpc^3) Table 3
-Nlbg = [1000.,5000.,10000.,20000.]
+Nlbg = [5000.,10000.,20000.]
 red_density = 5.6e-5 # per sq. arcsec, rough estimate (rounded low)
 
-angles_deg = np.logspace(-2,0)
-zlrange = [0.2,0.5,0.5,0.2,0.8]
-zsrange = [0.5,1.0,2.,4.,4.]
+angles_deg = np.logspace(-3,0,7)
+zlrange = [0.2,0.5,0.5,0.2,0.8,0.5]
+zsrange = [0.5,1.0,2.5,4.,4.,3.]
 
 #Figure 8 of Clampitt et al 2016
 Mlens = 2.e13
@@ -144,40 +144,67 @@ def sqdegreetosqarcsec(omega):
 def annulus_area(theta, dtheta):
     #theta, dtheta in radians
     #returns solid angle in arcsec**2.
-    Asterad = 2*np.pi * (np.cos(theta) - np.cos(theta+dtheta))
+    Asterad = 2*np.pi * (np.cos(theta-dtheta/2.) - np.cos(theta+dtheta/2.))
     return steradtosqarcsec(Asterad)
 
 def muest(n,n0,alpha):
     return 1. + (n/n0 - 1.)/(alpha - 1.)
 
-def Npairs(theta, Nsrc):
+def Npairs(theta, dthet, Nsrc):
     #theta in radians
-    return red_density * annulus_area(theta, dtheta(theta)) * Nsrc
+    return red_density * annulus_area(theta, dthet) * Nsrc
 
-def SNR(theta, Nsrc, M, alph, zl, zs):
-    return 2.*kappaNFW(M, theta, zl, zs) * (alph-1.) * np.sqrt(Npairs(theta, Nsrc))
+def SNR(theta, dthet, Nsrc, M, alph, zl, zs):
+    return 2.*kappaNFW(M, theta, zl, zs) * (alph-1.) * np.sqrt(Npairs(theta, dthet, Nsrc))
 
 def plotSNR():
     SNRs = []
     angles_rad = degtorad(angles_deg)
-    alphas = [1.1,3.]
+    dthetas = [angles_deg[i]-angles_deg[i-1] for i in range(1,len(angles_deg))]
+    thetas = np.array([np.mean([angles_rad[i], angles_rad[i-1]]) for i in range(1,len(angles_rad))])
+    thetas_deg = radtodeg(thetas)
+    alphas = [2.,3.]
     for zl,zs in zip(zlrange, zsrange):
         clist = rcParams['axes.color_cycle']
         cgen = itertools.cycle(clist)
+        offsets=np.array([-dthetai/6. for dthetai in dthetas])
         for N in Nlbg[::-1]:
-            SNRs_top = [SNR(angle, N, Mlens, np.max(alphas), zl, zs)
-                        for angle in angles_rad]
-            SNRs_bot = [SNR(angle, N, Mlens, np.min(alphas), zl, zs)
-                        for angle in angles_rad]
-            plt.fill_between(angles_deg, SNRs_bot, SNRs_top, alpha=0.4, label='Nsrc='+str(int(N)), facecolor=cgen.next())
+            check=0
+            SNRs_top = np.array([SNR(thetas[ai], degtorad(dthetas[ai]), N, Mlens, np.max(alphas), zl, zs)
+                                for ai in range(len(thetas))])
+            SNRs_bot = np.array([SNR(thetas[ai], degtorad(dthetas[ai]), N, Mlens, np.min(alphas), zl, zs)
+                                for ai in range(len(thetas))])
+
+            SNRs_half = (SNRs_top-SNRs_bot)/2.+SNRs_bot
+            fc = cgen.next()
+            for a in range(len(thetas)):
+                if check==0:
+                    #plt.plot([thetas_deg[a]-dthetas[a]/2., thetas_deg[a]+dthetas[a]/2.],
+                    #         [SNRs_half[a]]*2, linewidth=4., c='0.75')
+                    plt.plot([thetas_deg[a]+offsets[a]]*2, [SNRs_bot[a], SNRs_top[a]], linewidth=3., c=fc, label='Nsrc='+str(int(N)))
+                    check=1
+                else:
+                    #plt.plot([thetas_deg[a]-dthetas[a]/2., thetas_deg[a]+dthetas[a]/2.],
+                    #         [SNRs_half[a]]*2, linewidth=4., c='0.75')
+                    plt.plot([thetas_deg[a]+offsets[a]]*2, [SNRs_bot[a], SNRs_top[a]], linewidth=3., c=fc)
+            #plt.fill_between(angles_deg, SNRs_bot, SNRs_top, alpha=0.4, label='Nsrc='+str(int(N)), facecolor=fc)
+            noisesum = np.sum(np.array([1./np.sqrt(Npairs(thetas[i], degtorad(dthetas[i]), N)) for i in range(len(thetas))]))
+            totSNR_top = (np.sum(SNRs_top)/noisesum - 1.) / np.sqrt(noisesum)
+            totSNR_bot = (np.sum(SNRs_bot)/noisesum - 1.) / np.sqrt(noisesum)
+            print "combined SNR, Nsrc={}, zlens={}, zsrc={}, alpha={}: {}".format(N, zl, zs, alphas[0], totSNR_bot)
+            print "combined SNR, Nsrc={}, zlens={}, zsrc={}, alpha={}: {}".format(N, zl, zs, alphas[1], totSNR_top)
+            offsets=offsets+np.array([dthetai/6. for dthetai in dthetas])
         plt.xlabel('angle (deg)')
         plt.xscale('log')
         plt.yscale('log')
         plt.ylabel('S/N')
-        plt.legend()
-        plt.title('Mlens={} zlens={} zsrc={}, alpha={}-{}'.format(Mlens, zl, zs, np.min(alphas), np.max(alphas)))
+        plt.xlim(0.0009, 1.1)
+        plt.ylim(0.01,20)
+        plt.legend(loc='lower left')
+        plt.title('$M_{lens}=%.1e \, M_{\odot}, z_{lens}=%.1f \, z_{src}=%.1f, \\alpha=%.1f-%.1f$' %(Mlens, zl, zs, np.min(alphas), np.max(alphas)))
         plt.savefig('SNR_angle_zl{}_zs{}.png'.format(zl,zs))
         plt.close()
+        
         
 def varmuest(theta,n0,alpha):
     #theta in deg
