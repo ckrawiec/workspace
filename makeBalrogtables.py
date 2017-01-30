@@ -41,3 +41,6 @@ def zpcorrect():
             newsim['FLUXERR_AUTO_'+band] = sim['FLUXERR_AUTO_'+band] * flux_factor
         
         newsim.write(out_form.format(num))
+
+if __name__=="__main__":
+	main()
