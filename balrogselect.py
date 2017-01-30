@@ -26,7 +26,11 @@ connection = ea.connect()
 for table in tables:
 
     for table_num in table_nums:
-        out_file = data_dir+'balrog_sva1_auto_tab{}_{}.fits'.format(table_num, table)
+        if table=='SIM':
+            out_file = data_dir+'balrog_sva1_detmodel_tab{}_SIM.fits'.format(table_num)
+        elif table=='TRUTH':
+            out_file = data_dir+'balrog_sva1_tab{}_TRUTH.fits'.format(table_num)
+
         if os.path.exists(out_file):
             print "Output path {} already exists. Delete before running again. Moving to next table.".format(out_file)
             continue
@@ -36,19 +40,21 @@ for table in tables:
         for band in bands:            
             table_name = table_format.format(table_num, table, band)
             if table=='SIM':
-                query = "select BALROG_INDEX, ALPHAMODEL_J2000, DELTAMODEL_J2000, FLUX_AUTO, FLUXERR_AUTO, FLAGS_AUTO from {};".format(table_name)
+                query = "select BALROG_INDEX, ALPHAMODEL_J2000, DELTAMODEL_J2000, FLUX_DETMODEL, FLUXERR_DETMODEL, MAG_DETMODEL, MAGERR_DETMODEL, FLAGS from {};".format(table_name)
                 print "\nsubmitting query: "
                 print "    ", query
                 band_df = connection.query_to_pandas(query)
                 band_df = band_df.rename(index=str, columns={'ALPHAMODEL_J2000':'ALPHAMODEL_J2000_'+band,
                                                              'DELTAMODEL_J2000':'DELTAMODEL_J2000_'+band,
-                                                             'FLUX_AUTO':'FLUX_AUTO_'+band,
-                                                             'FLUXERR_AUTO':'FLUXERR_AUTO_'+band,
-                                                             'FLAGS_AUTO':'FLAGS_AUTO_'+band})
+                                                             'FLUX_DETMODEL':'FLUX_DETMODEL_'+band,
+                                                             'FLUXERR_DETMODEL':'FLUXERR_DETMODEL_'+band,
+                                                             'MAG_DETMODEL':'MAG_DETMODEL_'+band,
+                                                             'MAGERR_DETMODEL':'MAGERR_DETMODEL_'+band,
+                                                             'FLAGS':'FLAGS_'+band})
                 band_dfs.append(band_df)
 
             elif table=='TRUTH':
-                query = "select BALROG_INDEX, ID, RA, DEC, Z, ZEROPOINT, MAG, FLUX_0, HALFLIGHTRADIUS_0, FLUX_NOISELESS, FLUX_NOISED from {};".format(table_name)
+                query = "select BALROG_INDEX, ID, OBJTYPE, RA, DEC, Z, ZEROPOINT, MAG, FLUX_0, HALFLIGHTRADIUS_0, FLUX_NOISELESS, FLUX_NOISED from {};".format(table_name)
                 band_df = connection.query_to_pandas(query)
                 band_df = band_df.rename(index=str, columns={'ZEROPOINT':'ZEROPOINT_'+band,
                                                              'MAG':'MAG_'+band,
@@ -69,7 +75,8 @@ for table in tables:
                                                                           'ID',
                                                                           'RA',
                                                                           'DEC',
-                                                                          'Z'])
+                                                                          'Z',
+                                                                          'OBJTYPE'])
                                                                          
         tab = Table()
         for col in merged_df.columns:
