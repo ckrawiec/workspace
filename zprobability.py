@@ -9,7 +9,7 @@ usage: python zprobability.py <data table> <truth table> <output> <start index> 
     -SExtractor flux and error outputs
 <truth table> must include the following:
     -SExtractor flux and error outputs
-    -column named 'photoz'
+    -column named 'photoz' or 'zminchi2' (specify below)
 
 <output> will be a binary fits table and will overwrite existing file
 
@@ -28,13 +28,16 @@ num_threads = 4
 
 ptype = 'tree' #full or tree integration
 data_type = 'FLUX' #MAG or FLUX
+SE_col = 'AUTO' #AUTO or DETMODEL
+template_SE_col = 'AUTO'
+z_col = 'photoz'
 
 filters = ['G','R','I','Z']
 
 #groups
-z_groups = [[0.001,0.8],
-            [0.8,2.5],
-            [2.5,9.9]]
+z_groups = [[0.001, 0.8],
+            [0.8, 2.5], 
+            [2.5, 9.9]]
 
 k_near = 10000 #nearest neighbors if ptype=tree
 
@@ -135,15 +138,15 @@ def main(args):
     print "Loaded data in {} s".format(data_time-setup_start)
 
     #redshifts
-    z = templates['photoz']
+    z = templates[z_col]
 
     #data vectors
     if 'ngmix' in data_file:
         data_zip = np.array( zip( *[data['CM_'+data_type+'_'+f][start_index:end_index] for f in filters] ) )
         err_zip = np.array( zip( *[np.sqrt(data['CM_'+data_type+'_COV_'+f+'_'+f][start_index:end_index]) for f in filters] ) )
     else:
-        data_zip = np.array( zip( *[data[data_type+'_detmodel_'+f][start_index:end_index] for f in filters] ) )
-        err_zip = np.array( zip( *[data[data_type+'err_detmodel_'+f][start_index:end_index] for f in filters] ) )
+        data_zip = np.array( zip( *[data[data_type+'_'+SE_col+'_'+f][start_index:end_index] for f in filters] ) )
+        err_zip = np.array( zip( *[data[data_type+'err_'+SE_col+'_'+f][start_index:end_index] for f in filters] ) )
 
     if 'balrog' in data_file:
         id_col_name = 'BALROG_INDEX'
@@ -179,7 +182,7 @@ def main(args):
     for z_group in z_groups:
         z_mask = (z >= np.min(z_group)) & (z < np.max(z_group))
 
-        template_zip = np.array( zip( *[templates[data_type+'_detmodel_'+f][z_mask] for f in filters] ) )
+        template_zip = np.array( zip( *[templates[data_type+'_'+template_SE_col+'_'+f][z_mask] for f in filters] ) )
         print "# of COSMOS templates in z group {}: {}".format(str(z_group), len(template_zip))
     
         start = time.time()
@@ -206,7 +209,7 @@ def main(args):
 
     pri_hdr = fits.Header()
     tb_hdr = fits.Header()
-    tb_hdr['COMMENT'] = "Bayesian redshift probabilities for data in {} using photo-zs of templates from {}. Data vectors/errors were comprised of {}(ERR)_DETMODEL_% for % in {}. Columns reported here are \'P[zmin, zmax]\'".format(data_file, template_file, data_type, filters)
+    tb_hdr['COMMENT'] = "Bayesian redshift probabilities for data in {} using photo-zs of templates from {}. Data vectors/errors were comprised of {}(ERR)_{}_% for % in {}. Columns reported here are \'P[zmin, zmax]\'".format(data_file, template_file, data_type, SE_col, filters)
     if ptype=='tree':
         tb_hdr['NTREE'] = str(k_near)
 
