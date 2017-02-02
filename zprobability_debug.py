@@ -123,8 +123,9 @@ def ptree(vals, errs, truevals, knear=k_near):
         
         diff = val-truearr
         B = -0.5 * np.sum(diff**2.*covI, axis=1)
-        C = A * np.exp(B)
-            
+        #C = A * np.exp(B)
+        C = np.exp(B)
+
         out.append(np.sum(C) * float(len(truevals))/len(truearr))
             
     return np.array(out)
