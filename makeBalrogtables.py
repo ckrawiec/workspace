@@ -42,6 +42,9 @@ def zpcorrect():
             flux_factor = 10**(-0.4 * zp) / 10**(-0.4 * 30.)
             tab['FLUX_AUTO_'+band] = tab['FLUX_AUTO_'+band] * flux_factor
             tab['FLUXERR_AUTO_'+band] = tab['FLUXERR_AUTO_'+band] * flux_factor
+            tab['FLUX_NOISELESS_'+band] = tab['FLUX_NOISELESS_'+band] * flux_factor
+            tab['FLUX_NOISED_'+band] = tab['FLUX_NOISED_'+band] * flux_factor
+            tab['FLUX_0_'+band] = tab['FLUX_0_'+band] * flux_factor
         
         tab.write(out_form.format(num))
 
