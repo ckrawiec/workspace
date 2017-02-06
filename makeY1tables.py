@@ -22,7 +22,8 @@ ngmix_dfull_match = os.path.splitext(ngmix_dfull)[0]+'_match_cosmos_1arcsec'
 def maketables():
 #    makebalrog()
 #    chooseobjtype1(balrog_output)
-    matchwithcosmos(ngmix_dfull, ngmix_dfull_match)
+#    matchwithcosmos(ngmix_dfull, ngmix_dfull_match)
+    matchwithcosmos(y1_dfull, y1_match_file)
     
 def stackwrite(flist, output_file):
     tlist = [Table.read(table) for table in flist]
@@ -33,18 +34,19 @@ def stackwrite(flist, output_file):
 
 def matchwithcosmos(tab_file, match_file, nocosmos=False):
     print "Matching {} with {} within 1 arcsec...".format(tab_file, cosmos_file)
-    ntab = Table.read(tab_file)
-    y1tab = Table.read(y1_dfull)
 
-    ntab.rename_column('id', 'COADD_OBJECTS_ID')
-    tab = join(ntab, y1tab, keys='COADD_OBJECTS_ID')
+    tab = Table.read(tab_file)
 
-    print ntab['COADD_OBJECTS_ID'][:10]
-    print len(tab)
-    print y1tab['COADD_OBJECTS_ID'][:10]
-    plt.scatter(tab['RA'], tab['DEC'])
-    plt.show()
-    exit()
+    if 'mof' in tab_file:
+        y1tab = Table.read(y1_dfull)
+        ntab.rename_column('id', 'COADD_OBJECTS_ID')
+        tab = join(tab, y1tab, keys='COADD_OBJECTS_ID')
+
+        print ntab['COADD_OBJECTS_ID'][:10]
+        print len(tab)
+        print y1tab['COADD_OBJECTS_ID'][:10]
+        plt.scatter(tab['RA'], tab['DEC'])
+        plt.show()
 
     cosmos = Table.read(cosmos_file)
 
@@ -80,6 +82,7 @@ def matchwithcosmos(tab_file, match_file, nocosmos=False):
     print ' deleted old table'
 
     new_cosmos.add_column(Column(name='photoz', data=cosmos['PHOTOZ'][cosmos_m_int]))
+    new_cosmos.add_column(Column(name='ZMINCHI2', data=cosmos['ZMINCHI2'][cosmos_m_int]))
     new_cosmos.add_column(Column(name='NUMBER', data=cosmos['NUMBER'][cosmos_m_int]))
     new_cosmos.add_column(Column(name='ALPHA_J2000', data=cosmos['ALPHA_J2000'][cosmos_m_int]))
     new_cosmos.add_column(Column(name='DELTA_J2000', data=cosmos['ALPHA_J2000'][cosmos_m_int]))

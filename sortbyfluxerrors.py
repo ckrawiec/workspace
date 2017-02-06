@@ -5,17 +5,20 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from astropy.table import Table
 
-t_file ='/home/ckrawiec/DES/data/y1a1_gold_flux_detmodel_MC1.fits'
+t_file ='/home/ckrawiec/DES/data/matched_i-griz.fits'
+#y1a1_gold_flux_detmodel_MC1.fits'
 #'/home/ckrawiec/DES/data/balrog_y1a1_truth_sim_flux_detmodel.fits'
 
+SE_col = 'AUTO'
+
 filters = ['G','R','I','Z']
-N_split = 100
+N_split = 20
 
 data = Table.read(t_file)
 
 data_name = os.path.splitext(t_file)[0]
 
-fluxerr = (data['FLUXERR_DETMODEL_'+filter] for filter in filters)
+fluxerr = (data['FLUXERR_'+SE_col+'_'+filter] for filter in filters)
 
 errs = np.array(zip(*fluxerr))
 sigmas = np.sqrt(np.sum(errs**2., axis=1))
@@ -44,14 +47,15 @@ for t,n in zip(tabs, tabnames):
         t.write(n)
 
 for filter in filters:
-    ymins = np.array([np.percentile(tab['FLUXERR_DETMODEL_'+filter], 10) for tab in tabs])
-    ymaxs = np.array([np.percentile(tab['FLUXERR_DETMODEL_'+filter], 90) for tab in tabs])
-    means = np.array([tab['FLUXERR_DETMODEL_'+filter].mean() for tab in tabs])
+    errcol = 'FLUXERR_'+SE_col+'_'+filter
+    ymins = np.array([np.percentile(tab[errcol], 10) for tab in tabs])
+    ymaxs = np.array([np.percentile(tab[errcol], 90) for tab in tabs])
+    means = np.array([tab[errcol].mean() for tab in tabs])
     plt.errorbar(range(N_split), means, 
                  yerr=[means-ymins,ymaxs-means], fmt='o-', label=filter)
 plt.ylim(1,1100000)
 plt.xlabel('flux error group')
-plt.ylabel('mean fluxerr_detmodel')
+plt.ylabel('mean FLUXERR_'+SE_col)
 plt.title('errorbars = 10th & 90th percentile')
 plt.yscale('log')
 plt.legend(loc='best')
@@ -59,14 +63,15 @@ plt.savefig('{}_{}_fluxerrgrp_means'.format(data_name,''.join(filters)))
 plt.close()
 
 for filter in filters:
-    ymins = np.array([np.percentile(tab['FLUXERR_DETMODEL_'+filter],10) for tab in tabs])
-    ymaxs = np.array([np.percentile(tab['FLUXERR_DETMODEL_'+filter],90) for tab in tabs])
-    medians = np.array([np.median(tab['FLUXERR_DETMODEL_'+filter]) for tab in tabs])
+    errcol = 'FLUXERR_'+SE_col+'_'+filter
+    ymins = np.array([np.percentile(tab[errcol],10) for tab in tabs])
+    ymaxs = np.array([np.percentile(tab[errcol],90) for tab in tabs])
+    medians = np.array([np.median(tab[errcol]) for tab in tabs])
     plt.errorbar(range(N_split), medians, 
                  yerr=[medians-ymins,ymaxs-medians], fmt='o-', label=filter)
 plt.ylim(10,1100)
 plt.xlabel('flux error group')
-plt.ylabel('median fluxerr_detmodel')
+plt.ylabel('median FLUXERR_'+SE_col)
 plt.yscale('log')
 plt.title('errorbars = 10th & 90th percentile')
 plt.legend(loc='best')
