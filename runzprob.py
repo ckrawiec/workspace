@@ -45,7 +45,7 @@ def parseconfig(config_file):
     global k_near
     k_near = None
     if params['integration'] == 'tree':
-        params['k_near'] = config.getint('parameters','k_near')
+        k_near = config.getint('parameters','k_near')
         
     params['template_id_column'] = config.get('data','template_id_column')
     params['template_data_column'] = config.get('data','template_data_column')
@@ -97,7 +97,7 @@ def writetofile(params, Pdict, targets):
                                                                              params['filters'])
                                                                         
     if params['integration']=='tree':
-        tb_hdr['NTREE'] = str(params['k_near'])
+        tb_hdr['NTREE'] = str(k_near)
 
     pri_hdu = fits.PrimaryHDU(header=pri_hdr)
     tb_hdu = fits.BinTableHDU.from_columns(fits.ColDefs(col_defs), nrows=len(targets.data), header=tb_hdr)
