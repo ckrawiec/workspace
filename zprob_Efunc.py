@@ -26,7 +26,7 @@ def Lbalrog(val, err, truevals):
     ls = []
     for trueval in truevals:
         args = [(val-trueval)/err]+Lparams(val)
-        ls.append(fit(*args)**len(val))
+        ls.append(np.prod(fit(*args)))
     return ls
     #need true flux, true size
     #all filters???
