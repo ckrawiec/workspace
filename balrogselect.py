@@ -14,12 +14,12 @@ data_dir = '/Users/Christina/DES/data/balrog/sva1/'
 #format of balrog tables in db
 table_format = "JELENA.BALROG_SVA1_TAB{}_{}_{}"
 
-table_nums = [str(r).zfill(2) for r in range(1,12)]
+table_nums = [str(r).zfill(2) for r in range(1,3)]
 #09 is not valid
-table_nums.remove('09')
+#table_nums.remove('09')
 
 bands = ['G','R','I','Z']
-tables = ['SIM', 'TRUTH']#, 'NOSIM']
+tables = ['SIM']#, 'TRUTH']#, 'NOSIM']
 
 connection = ea.connect()
 
@@ -27,7 +27,7 @@ for table in tables:
 
     for table_num in table_nums:
         if table=='SIM':
-            out_file = data_dir+'balrog_sva1_detmodel_tab{}_SIM.fits'.format(table_num)
+            out_file = data_dir+'balrog_sva1_aper_10_tab{}_SIM.fits'.format(table_num)
         elif table=='TRUTH':
             out_file = data_dir+'balrog_sva1_tab{}_TRUTH.fits'.format(table_num)
 
@@ -40,16 +40,16 @@ for table in tables:
         for band in bands:            
             table_name = table_format.format(table_num, table, band)
             if table=='SIM':
-                query = "select BALROG_INDEX, ALPHAMODEL_J2000, DELTAMODEL_J2000, FLUX_DETMODEL, FLUXERR_DETMODEL, MAG_DETMODEL, MAGERR_DETMODEL, FLAGS from {};".format(table_name)
+                query = "select BALROG_INDEX, ALPHAMODEL_J2000, DELTAMODEL_J2000, FLUX_APER_10, FLUXERR_APER_10, MAG_APER_10, MAGERR_APER_10, FLAGS from {};".format(table_name)
                 print "\nsubmitting query: "
                 print "    ", query
                 band_df = connection.query_to_pandas(query)
                 band_df = band_df.rename(index=str, columns={'ALPHAMODEL_J2000':'ALPHAMODEL_J2000_'+band,
                                                              'DELTAMODEL_J2000':'DELTAMODEL_J2000_'+band,
-                                                             'FLUX_DETMODEL':'FLUX_DETMODEL_'+band,
-                                                             'FLUXERR_DETMODEL':'FLUXERR_DETMODEL_'+band,
-                                                             'MAG_DETMODEL':'MAG_DETMODEL_'+band,
-                                                             'MAGERR_DETMODEL':'MAGERR_DETMODEL_'+band,
+                                                             'FLUX_APER_10':'FLUX_APER_10_'+band,
+                                                             'FLUXERR_APER_10':'FLUXERR_APER_10_'+band,
+                                                             'MAG_APER_10':'MAG_APER_10_'+band,
+                                                             'MAGERR_APER_10':'MAGERR_APER_10_'+band,
                                                              'FLAGS':'FLAGS_'+band})
                 band_dfs.append(band_df)
 
