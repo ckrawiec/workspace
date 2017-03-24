@@ -11,25 +11,26 @@ query_radius, integrate = None, None
 
 #params['error_func'] = 'Gaussian' or 'Balrog'
 
+#GRIZ order
+fit_params = [[ 0.3434363,  -0.20932157, -0.13738978,  0.80368388,  4.48815913,  2.64501352],
+              [ 0.44771477, -0.32789742,  0.0643637,   0.70884037,  5.09616604,  3.64810771],
+              [ 0.45379012, -0.30075517,  0.13954526,  0.89932451,  3.53953381,  2.35121935],
+              [ 0.41460442, -0.23029804,  0.0748674,   0.97990692,  2.72904718,  1.59602243]]
+
 def fit(x, A1, A2, C1, C2, V1, V2):
     g1 = A1 * np.exp(-0.5 * (x - C1)**2. / V1)
     g2 = A2 * np.exp(-0.5 * (x - C2)**2. / V2)
     return g1 + g2
 
-def Lparams(fluxes):
-    if (fluxes[0] < 1000.):
-        return [0.17, 0.02, -1.16, 1.07, 3.55, 17.88]
-    else:
-        return [1.69e-2, 8.25e-2, -6.17, -2.69, 1.03e2, 6.46]
-
 def Lbalrog(val, err, truevals):
     ls = []
     for trueval in truevals:
-        args = [(val-trueval)/err]+Lparams(val)
-        ls.append(np.prod(fit(*args)))
+        ans = []
+        for iv in range(len(val)):
+            args = ([val[iv]-trueval[iv])/err[iv]] + fit_params[iv]
+            ans.append(fit(*args))
+        ls.append(np.prod(ans)))
     return ls
-    #need true flux, true size
-    #all filters???
 
 def Lgauss(val, err, truevals):
     covI = 1./err**2.
