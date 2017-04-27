@@ -8,8 +8,15 @@ from astropy.table import Table, Column, vstack, join
 home_dir = '/home/ckrawiec/'
 
 y1a1_gold_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_flux_detmodel_MC1_*')
+y1a1_d04_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_d04_0000*fits')
+
 y1_dfull = home_dir+'DES/data/y1a1_gold_dfull.fits'
-y1_match_file = home_dir+'DES/data/match_y1a1_gold_dfull_cosmos_1arcsec'
+y1_d04 = home_dir+'DES/data/y1a1_gold_d04.fits'
+
+y1_dfull_match_file = home_dir+'DES/data/match_y1a1_gold_dfull_cosmos_1arcsec'
+y1_d04_match_file = home_dir+'DES/data/match_y1a1_gold_d04_cosmos_1arcsec'
+
+y1_d04_cosmos = home_dir+'DES/data/y1a1_gold_d04_cosmos.fits'
 
 cosmos_file = home_dir+'COSMOS/data/COSMOS2015_Laigle+_v1.1.fits'
 
@@ -23,8 +30,11 @@ def maketables():
 #    makebalrog()
 #    chooseobjtype1(balrog_output)
 #    matchwithcosmos(ngmix_dfull, ngmix_dfull_match)
-    matchwithcosmos(y1_dfull, y1_match_file)
-    
+    stackwrite(y1a1_d04_tables, y1_d04)
+    matchwithcosmos(y1_d04, y1_d04_match_file)
+    chooseobjtype1(y1_d04)
+    chooseobjtype1(y1_d04_cosmos)
+
 def stackwrite(flist, output_file):
     tlist = [Table.read(table) for table in flist]
     new_table = vstack(tlist)
