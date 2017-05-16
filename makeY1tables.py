@@ -5,18 +5,22 @@ import esutil
 import matplotlib.pyplot as plt
 from astropy.table import Table, Column, vstack, join
 
-home_dir = '/home/ckrawiec/'
+home_dir = '/Users/Christina/'#'/home/ckrawiec/'
 
 y1a1_gold_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_flux_detmodel_MC1_*')
-y1a1_d04_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_d04_0000*fits')
+y1a1_d04_tables = glob.glob(home_dir+'DES/data/y1a1_gold_d04_0000*fits')
 
 y1_dfull = home_dir+'DES/data/y1a1_gold_dfull.fits'
 y1_d04 = home_dir+'DES/data/y1a1_gold_d04.fits'
 
 y1_dfull_match_file = home_dir+'DES/data/match_y1a1_gold_dfull_cosmos_1arcsec'
 y1_d04_match_file = home_dir+'DES/data/match_y1a1_gold_d04_cosmos_1arcsec'
+d04_dfull_match_file = home_dir+'DES/data/match_y1a1_gold_d04_dfull_cosmos_1arcsec'
 
 y1_d04_cosmos = home_dir+'DES/data/y1a1_gold_d04_cosmos.fits'
+y1_dfull_cosmos = home_dir+'DES/data/y1a1_gold_dfull_cosmos.fits'
+
+d04_dfull = home_dir+ 'DES/data/y1a1_gold_d04_dfull_cosmos_matched.fits'
 
 cosmos_file = home_dir+'COSMOS/data/COSMOS2015_Laigle+_v1.1.fits'
 
@@ -30,10 +34,9 @@ def maketables():
 #    makebalrog()
 #    chooseobjtype1(balrog_output)
 #    matchwithcosmos(ngmix_dfull, ngmix_dfull_match)
-    stackwrite(y1a1_d04_tables, y1_d04)
-    matchwithcosmos(y1_d04, y1_d04_match_file)
-    chooseobjtype1(y1_d04)
-    chooseobjtype1(y1_d04_cosmos)
+#    stackwrite(y1a1_d04_tables, y1_d04)
+    match(y1_d04_cosmos, y1_dfull_cosmos, 'd04', 'dfull', d04_dfull_match_file, d04_dfull)
+#    matchwithcosmos(y1_d04, y1_d04_match_file)
 
 def stackwrite(flist, output_file):
     tlist = [Table.read(table) for table in flist]
@@ -41,6 +44,34 @@ def stackwrite(flist, output_file):
     del tlist
     new_table.write(output_file)
 
+def match(file1, file2, name1, name2, match_file, outfile):
+    tab1 = Table.read(file1)
+    tab2 = Table.read(file2)
+
+    h = esutil.htm.HTM(10)
+    h.match(tab1['RA'], tab1['DEC'],
+            tab2['RA'], tab2['DEC'],
+            radius=1./3600,
+            file=match_file)
+
+    m = h.read(match_file)
+
+    m1, m2, merr = np.array(zip(*m))
+
+    print " {} matches".format(len(m1))
+    print " No duplicates in matched list?:{}".format(len(m1)==len(set(m1)))
+
+    m1_int = [int(g) for g in m1]
+    m2_int = [int(c) for c in m2]
+
+    new_tab = Table()
+    for colname in tab1.colnames:
+        new_tab.add_column(Column(data=tab1[colname][m1_int], name=colname+'_'+name1))
+    for colname in tab2.colnames:
+        new_tab.add_column(Column(data=tab2[colname][m2_int], name=colname+'_'+name2))
+
+    new_tab.add_column(Column(name='match_err', data=merr))
+    new_tab.write(outfile)
 
 def matchwithcosmos(tab_file, match_file, nocosmos=False):
     print "Matching {} with {} within 1 arcsec...".format(tab_file, cosmos_file)
