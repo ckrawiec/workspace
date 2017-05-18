@@ -2,43 +2,73 @@ import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from astropy.table import Table, join
+from astropy.table import Table, join, Column
 from astropy.io import fits
 import glob
 import pandas as pd
 from myutils import fitsstack
 
-base_name = 'zprob_SV_z25_3bins_sigma_tree_griz'
+base_name = 'sva1_gold_cosmosdfull_photoz_auto_griz_z3_3bins_full_gauss'
+#'zprob_SV_z25_3bins_sigma_tree_griz'
 #'zprob_balrog_sva1_z25_3bin_sigma_tree_griz'
 #'zprob_Y1_z25_3bins_sigma_tree_griz'
 #'zprob_balrog_y1a1_z25_3bins_sigma_tree_griz'
 
+home_dir = '/Users/Christina/'
 
-zsrc = [2.5, 9.9]
-zlens = [0.001, 0.8]
-zother = [0.8,2.5]
+zsrc = [3.0, 9.9]
+zlens = [0.001, 1.0]
+zother = [1.0, 3.0]
 
-d_file = '/home/ckrawiec/DES/data/sva1_gold_detmodel_MC1_good_regions_no_cosmos.fits'
+d_id_col = 'COADD_OBJECTS_ID'
+z_id_col = 'COADD_OBJECTS_ID'
+id_col_type = float
+
+d_file = home_dir+'DES/data/sva1_gold_auto_good_regions_no_cosmos.fits'
 #'/home/ckrawiec/DES/data/y1a1_gold_mag_detmodel_MC1.fits'
 #'/home/ckrawiec/DES/data/balrog_y1a1_truth_sim_flux_detmodel.fits'
 
-red_file = '/home/ckrawiec/DES/data/y1a1_gold_1.0.2b-full_redmapper_v6.4.11_redmagic_highdens_0.5-10.fit'
+red_file = home_dir+'DES/data/y1a1_gold_1.0.2b-full_redmapper_v6.4.11_redmagic_highdens_0.5-10.fit'
 
-z_file = '/home/ckrawiec/DES/magnification/lbgselect/{}.fits'.format(base_name)
-z_files = glob.glob('/home/ckrawiec/DES/magnification/lbgselect/{}_*.fits'.format(base_name))
+z_file = home_dir+'DES/magnification/lbgselect/zproboutput/{}_combined.fits'.format(base_name)
+z_files = glob.glob(home_dir+'DES/magnification/lbgselect/zproboutput/{}_*.fits'.format(base_name))
 
 def makeplots():
-#    hexbinPsrcmean()
+    hexbinPsrcmean()
 #    hist2dPall()
 #    NvsPcut()
 #    radecscatter(0.6)
-#    histmagi(0.6)
+    histmagi(0.6)
     histmagislope(0.6)
 #    redmagiccount(0.6)
 #    histhexbin()
 #    hexbinPsrcmeanNorm()
 #    balrogzhist(0.8)
-        
+
+def joincorrecttype(tab1_file, tab2_file, col1_name, col2_name, col_type):
+    #fix tables where match columns are in different formats
+    #to successfully join tab1 & tab2
+    tab1 = Table.read(tab1_file)
+    tab2 = Table.read(tab2_file)
+    
+    keep = []
+    for row in range(len(tab2[col2_name])):
+        try:
+            col_type(tab2[col2_name][row])
+            keep.append(row)
+        except ValueError:
+            continue
+
+    tab2 = tab2[keep]
+    col2 = tab2[col2_name]
+    tab2.remove_column(col2_name)
+    tab2.add_column(Column(data=col2, name=col2_name, dtype=col_type))
+
+    if (col2_name != col1_name):
+        tab2.rename_column(col2_name, col1_name)
+    joined = join(tab1, tab2, keys=col1_name)
+    return joined
+
 def writefitsstack(infiles, outfile):
     hdu = fitsstack(infiles)
     pri_hdu = fits.PrimaryHDU()
@@ -47,14 +77,14 @@ def writefitsstack(infiles, outfile):
 
 #writefitsstack(z_files, z_file)
 
-ztab = Table.read(z_file)
-dtab = Table.read(d_file)
+#ztab = Table.read(z_file)
+#dtab = Table.read(d_file)
 #zbalrogtab = Table.read('/home/ckrawiec/DES/data/balrog_y1a1_truth_index_z.fits')
 
 #newtab = join(dtab, zbalrogtab)
-tab = join(dtab, ztab)
+tab = joincorrecttype(d_file, z_file, d_id_col, z_id_col, id_col_type)
 
-del ztab, dtab#, zbalrogtab
+#del ztab, dtab#, zbalrogtab
 
 if 'balrog' not in base_name:
     g = tab['MAG_DETMODEL_G']
@@ -105,7 +135,7 @@ def histmagislope(cut):
     plt.legend(loc='upper left')
     plt.xlabel('mag_detmodel_i')
     plt.title('P(z > {}) > {}'.format(zsrc[0], cut))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_hist_mag_i_diffslope_Pcut_src'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_hist_mag_i_diffslope_Pcut_src'.format(base_name))
     plt.close()
 
 
@@ -119,7 +149,7 @@ def histmagi(cut):
     plt.legend(loc='upper left')
     plt.xlabel('mag_detmodel_i')
     plt.title('P(z > {}) > {}'.format(zsrc[0], cut))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_hist_mag_i_Pcut_src'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_hist_mag_i_Pcut_src'.format(base_name))
     plt.close()
 
     plt.hist(i[Plens>cut], histtype='step', bins=1000, label='all')
@@ -131,24 +161,24 @@ def histmagi(cut):
     plt.legend(loc='upper left')
     plt.xlabel('mag_detmodel_i')
     plt.title('P({} < z < {}) > {}'.format(zlens[0], zlens[1], cut))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_hist_mag_i_Pcut_lens'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_hist_mag_i_Pcut_lens'.format(base_name))
     plt.close()
 
 
 def histhexbin():
     df = pd.DataFrame(zip(ri[ribox & grbox], gr[ribox & grbox]), columns=['r-i', 'g-r'])
     df.plot.hexbin(x='r-i', y='g-r', gridsize=20, cmap=plt.get_cmap('gnuplot'))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_mag_ri_gr_hist_hexbin'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_ri_gr_hist_hexbin'.format(base_name))
     plt.close()
 
     df = pd.DataFrame(zip(iz[izbox & ribox], ri[izbox & ribox]), columns=['i-z', 'r-i'])
     df.plot.hexbin(x='i-z', y='r-i', gridsize=20, cmap=plt.get_cmap('gnuplot'))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_mag_iz_ri_hist_hexbin'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_iz_ri_hist_hexbin'.format(base_name))
     plt.close()
     
     df = pd.DataFrame(zip(zY[zYbox & izbox], iz[zYbox & izbox]), columns=['z-Y', 'i-z'])
     df.plot.hexbin(x='z-Y', y='i-z', gridsize=20, cmap=plt.get_cmap('gnuplot'))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_mag_zY_iz_hist_hexbin'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_zY_iz_hist_hexbin'.format(base_name))
     plt.close()
 
 def colorfunc(color):
@@ -158,7 +188,7 @@ def hexbinPsrcmeanNorm():
     df = pd.DataFrame(zip(ri[ribox & grbox], gr[ribox & grbox]), columns=['r-i', 'g-r'])
     df['Psrc']=Psrc[ribox & grbox]
     df.plot.hexbin(x='r-i', y='g-r', C='Psrc', reduce_C_function=colorfunc, gridsize=20, cmap=plt.get_cmap('gnuplot'))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_mag_ri_gr_P_mean_norm_hexbin'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_ri_gr_P_mean_norm_hexbin'.format(base_name))
 #    plt.colorbar(label='P{} * N'.format(zsrc))
     plt.close()
 
@@ -167,19 +197,19 @@ def hexbinPsrcmean():
     df = pd.DataFrame(zip(ri[ribox & grbox], gr[ribox & grbox]), columns=['r-i', 'g-r'])
     df['Psrc']=Psrc[ribox & grbox]
     df.plot.hexbin(x='r-i', y='g-r', C='Psrc', reduce_C_function=np.mean, gridsize=20, cmap=plt.get_cmap('gnuplot'))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_mag_ri_gr_P_mean_hexbin'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_ri_gr_P_mean_hexbin'.format(base_name))
     plt.close()
 
     df = pd.DataFrame(zip(iz[izbox & ribox], ri[izbox & ribox]), columns=['i-z', 'r-i'])
     df['Psrc']=Psrc[izbox & ribox]
     df.plot.hexbin(x='i-z', y='r-i', C='Psrc', reduce_C_function=np.mean, gridsize=20, cmap=plt.get_cmap('gnuplot'))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_mag_iz_ri_P_mean_hexbin'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_iz_ri_P_mean_hexbin'.format(base_name))
     plt.close()
     
     df = pd.DataFrame(zip(zY[zYbox & izbox], iz[zYbox & izbox]), columns=['z-Y', 'i-z'])
     df['Psrc']=Psrc[zYbox & izbox]
     df.plot.hexbin(x='z-Y', y='i-z', C='Psrc', reduce_C_function=np.mean, gridsize=20, cmap=plt.get_cmap('gnuplot'))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_mag_zY_iz_P_mean_hexbin'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_zY_iz_P_mean_hexbin'.format(base_name))
     plt.close()
 
     
@@ -188,7 +218,7 @@ def hist2dPall():
     plt.colorbar()
     plt.xlabel('P'+str(zlens))
     plt.ylabel('P'+str(zsrc))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_Pplot'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_Pplot'.format(base_name))
     plt.close()
 
 def NvsPcut():
@@ -207,7 +237,7 @@ def NvsPcut():
     plt.xlabel('$P_{cut}$')
     plt.ylabel('N')
     plt.legend(loc='best')
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_N_Pcut'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_N_Pcut'.format(base_name))
     plt.close()
     
 def radecscatter(cut):
@@ -221,22 +251,22 @@ def radecscatter(cut):
     plt.ylabel('dec')
 
     #all
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_ra_dec'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_ra_dec'.format(base_name))
 
     #Y1A1 main
     plt.xlim(0,360)
     plt.ylim(-70,-35)
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_ra_dec_Y1A1_main'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_ra_dec_Y1A1_main'.format(base_name))
 
     #SPT-E
     plt.xlim(60, 95)
     plt.ylim(-62.3, -42)
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_ra_dec_SPTE'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_ra_dec_SPTE'.format(base_name))
 
     #COSMOS
     plt.xlim(148.5, 151.5)
     plt.ylim(1., 3.5)
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_ra_dec_COSMOS'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_ra_dec_COSMOS'.format(base_name))
     plt.close()
 
 def redmagiccount(cut):
@@ -252,7 +282,7 @@ def redmagiccount(cut):
         n_src.append(len(ra[annulus]))
     plt.hist(n_src, bins=100, histtype='step')
     plt.xlabel('# P(src) > {} around redmagic galaxies ({}-{}$\deg$)'.format(cut,r_min,r_max))
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_redmagic_annulus_count'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_redmagic_annulus_count'.format(base_name))
     plt.close()
 
 def balrogzhist(cut):
@@ -262,7 +292,7 @@ def balrogzhist(cut):
     plt.yscale('log')
     plt.xlabel('true z')
     plt.legend(loc='best')
-    plt.savefig('/home/ckrawiec/DES/magnification/lbgselect/{}_balrog_z_hist'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_balrog_z_hist'.format(base_name))
     plt.close()
 
 

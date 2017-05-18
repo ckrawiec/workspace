@@ -7,30 +7,34 @@ from scipy import stats
 from astropy.table import Table, join, Column
 
 #uses z_column to check accuracy of results when target redshift is known
-check_truth = False
-z_column = ''#'Z'
+check_truth = True
+z_column = 'Z'
 #'photoz_dfull'
 
 #variables
 num_files = 12
-id_column_true = 'COADD_OBJECTS_ID'
-#'BALROG_INDEX'
-id_column_targ = 'COADD_OBJECTS_ID'
-#'BALROG_INDEX'
+id_column_true = 'BALROG_INDEX'
+#'COADD_OBJECTS_ID'
+id_column_targ = 'BALROG_INDEX'
+#'COADD_OBJECTS_ID'
 #'ID'
-z_groups = [[0.001, 1.0],
-            [1.0, 3.0],
-            [3.0, 9.9]]
+z_groups = [[0.001, 0.8],
+            [0.8, 2.5],
+            [2.5, 9.9]]
 
 id_col_type = float
 
-truth_file = ''#'/Users/Christina/DES/data/balrog/sva1/balrog_sva1_tab{}_TRUTH.fits'
+truth_file = '/Users/Christina/DES/data/balrog/sva1/balrog_sva1_tab{}_TRUTH.fits'
+#'/Users/Christina/DES/data/balrog_sva1_TRUTH_zp_corr_fluxes_fixids.fits'
 #'/Users/Christina/DES/data/y1a1_gold_d04_dfull_cosmos_matched.fits
 #'/Users/Christina/DES/magnification/lbgselect/mocks/run7/zprob_mock{}.fits'
 
-results_dir = '/Users/Christina/DES/magnification/lbgselect/zproboutput/'
+results_dir = '/Users/Christina/DES/magnification/lbgselect/'
 output_dir = '/Users/Christina/DES/magnification/lbgselect/zproboutput/'
-name = 'sva1_gold_cosmos_zminchi2_auto_griz_z3_3bins_full_gauss'
+name = 'zprob_balrog_sva1_balrogz_z25_3bins_sigma_tree_noiseless_auto_both_zpcorr_griz_tab{}'
+#'zprob_balrog_sva1_auto_cosmos_photoz_griz_zpcorr_full_z2.5_3bins_v2_tab{}'
+#'y1a1_gold_cosmosdfull_zminchi2_auto_griz_z3_3bins_full_gauss_000001'
+#'sva1_gold_cosmos_zminchi2_auto_griz_z3_3bins_full_gauss'
 #'balrog_sva1_balrogz_0griz_auto_zpcorr_f1s1_full_z3_3bins_Efunc_tab{}'
 #'sva1_gold_cosmosdfull_photoz_auto_griz_z3_3bins_full_gauss_0-500000'
 #'y1a1_gold_cosmosdfulld04noised_cosmosdfull_photoz_auto_griz_full_gauss_z3_2bins'
