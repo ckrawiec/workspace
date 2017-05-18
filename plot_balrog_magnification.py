@@ -12,6 +12,7 @@ def makeplots():
     Nvsdiffthresh()
     
 balrog_file = '/home/ckrawiec/DES/data/balrog_y1a1_truth_noiseless_flux_size_objtype1.fits'
+sim_file = '/home/ckrawiec/DES/data/balrog_y1a1_sim_truth_flux_detmodel.fits'
 
 mag = Table.read(mag_file)
 balrog = Table.read(balrog_file)
