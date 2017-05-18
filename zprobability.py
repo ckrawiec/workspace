@@ -26,7 +26,7 @@ from scipy.spatial import ckdtree
 
 num_threads = 4
 
-ptype = 'tree' #full or tree integration
+ptype = 'full' #full or tree integration
 data_type = 'FLUX' #MAG or FLUX
 SE_col = 'AUTO' #AUTO or DETMODEL
 template_SE_col = 'AUTO'

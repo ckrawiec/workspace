@@ -6,20 +6,20 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import easyaccess as ea
-from astropy.table import Table, join
+from astropy.table import Table, join, Column
 
 #directory to store outputs
-data_dir = '/Users/Christina/DES/data/balrog/sva1/'
+data_dir = '/Users/Christina/DES/data/'
 
 #format of balrog tables in db
 table_format = "JELENA.BALROG_SVA1_TAB{}_{}_{}"
 
-table_nums = [str(r).zfill(2) for r in range(1,3)]
+table_nums = [str(r).zfill(2) for r in range(1,12)]
 #09 is not valid
-#table_nums.remove('09')
+table_nums.remove('09')
 
 bands = ['G','R','I','Z']
-tables = ['SIM']#, 'TRUTH']#, 'NOSIM']
+tables = ['TRUTH']#, 'NOSIM']
 
 connection = ea.connect()
 
@@ -54,12 +54,12 @@ for table in tables:
                 band_dfs.append(band_df)
 
             elif table=='TRUTH':
-                query = "select BALROG_INDEX, ID, OBJTYPE, RA, DEC, Z, ZEROPOINT, MAG, FLUX_0, HALFLIGHTRADIUS_0, FLUX_NOISELESS, FLUX_NOISED from {};".format(table_name)
+                query = "select BALROG_INDEX, ID, OBJTYPE, RA, DEC, Z, ZEROPOINT, MAG, FLUX_0, FLUX_NOISELESS, FLUX_NOISED, NOT_DRAWN, INDEXSTART, MOD, X, Y, TILENAME, SERSICINDEX_0, HALFLIGHTRADIUS_0, AXISRATIO_0, BETA_0 from {};".format(table_name)
                 band_df = connection.query_to_pandas(query)
                 band_df = band_df.rename(index=str, columns={'ZEROPOINT':'ZEROPOINT_'+band,
                                                              'MAG':'MAG_'+band,
                                                              'FLUX_0':'FLUX_0_'+band,
-                                                             'HALFLIGHTRADIUS_0':'HALFLIGHTRADIUS_0_'+band,
+                                                             'NOT_DRAWN':'NOT_DRAWN_'+band,
                                                              'FLUX_NOISELESS':'FLUX_NOISELESS_'+band,
                                                              'FLUX_NOISED':'FLUX_NOISED_'+band})
                 band_dfs.append(band_df)
@@ -72,15 +72,29 @@ for table in tables:
                 merged_df = pd.merge(merged_df, band_df, how='outer', on='BALROG_INDEX')
             elif table=='TRUTH':
                 merged_df = pd.merge(merged_df, band_df, how='outer', on=['BALROG_INDEX',
+                                                                          'INDEXSTART',
                                                                           'ID',
+                                                                          'OBJTYPE',
+                                                                          'MOD',
                                                                           'RA',
                                                                           'DEC',
+                                                                          'X','Y',
                                                                           'Z',
-                                                                          'OBJTYPE'])
-                                                                         
+                                                                          'TILENAME',
+                                                                          'SERSICINDEX_0',
+                                                                          'HALFLIGHTRADIUS_0',
+                                                                          'AXISRATIO_0',
+                                                                          'BETA_0'])
+
+
         tab = Table()
         for col in merged_df.columns:
-            tab.add_column(Table.Column(merged_df[col], col))
+            tab.add_column(Column(merged_df[col], col))
+        
+        if 'TILENAME' in tab.colnames:
+            new_col = Column([str(tilename) for tilename in tab['TILENAME']], 'TILENAME')
+            tab.remove_column('TILENAME')
+            tab.add_column(new_col)
 
         tab.write(out_file)
     

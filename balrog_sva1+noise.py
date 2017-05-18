@@ -2,14 +2,44 @@ import numpy as np
 import sys
 from astropy.table import Table
 
-error_type = 'sv'  #'flat'
+error_type = 'y1d04'  #'flat'
 flat_error_sigma = 10.
 
 #sva1 gold with bad regions masks applied and cosmos matches removed (shouldn't matter)
 sv_file = '/Users/Christina/DES/data/sva1_gold_auto_good_regions_no_cosmos.fits'
 
+#y1a1 gold all d04 objects that match to dfull-cosmos15 matched catalog
+y1d04_file = '/Users/Christina/DES/data/y1a1_gold_d04_cosmos_matched.fits'
+
 #balrog_combined_output = '/Users/Christina/DES/data/balrog_sva1_TRUTH_zp_corr_fluxes.fits'
 balrog_noise_output = '/Users/Christina/DES/data/balrog_sva1_tab{}_TRUTH_zp_corr_SVnoised_fluxes.fits'
+
+Efunc_params = [  0.3434363,
+                -0.20932157,
+                -0.13738978,
+                 0.80368388,
+                 4.48815913,
+                 2.64501352]
+
+def Gfunc(x, A, C, V):
+    return A * np.exp(-0.5 * (x-C)*(x-C) / V)
+    
+def Efunc(x, A, B, C1, C2, V1, V2):
+    return Gfunc(x, A, C1, V1) + Gfunc(x, B, C2, V2)
+
+def eflat(flux, background):
+    sigma = background
+    return np.random.normal(0., sigma, len(flux)), [sigma]*len(flux)
+
+values = np.arange(-100, 100, 0.001)
+Eargs = [values]+Efunc_params
+ps = Efunc(*Eargs)
+ps /= sum(ps)
+
+def enew(flux, background):
+    sigmas = np.sqrt(flux + background**2.)
+    return np.prod(zip(np.random.choice(values, len(flux), p=ps), sigmas), axis=1), sigmas
+
 
 #gather balrog sva1 tables
 table_nums = []
