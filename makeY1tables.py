@@ -1,14 +1,15 @@
 import numpy as np
 import glob
 import os
-import esutil
+#import esutil
 import matplotlib.pyplot as plt
 from astropy.table import Table, Column, vstack, join
 
 home_dir = '/Users/Christina/'#'/home/ckrawiec/'
 
-y1a1_gold_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_flux_detmodel_MC1_*')
-y1a1_d04_tables = glob.glob(home_dir+'DES/data/y1a1_gold_d04_0000*fits')
+y1a1_gold_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_flux_auto_griz_*')
+y1a1_gold = '/home/ckrawiec/DES/data/y1a1_gold_flux_auto_griz.fits'
+y1a1_d04_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_d04_0000*fits')
 
 y1_dfull = home_dir+'DES/data/y1a1_gold_dfull.fits'
 y1_d04 = home_dir+'DES/data/y1a1_gold_d04.fits'
@@ -34,9 +35,16 @@ def maketables():
 #    makebalrog()
 #    chooseobjtype1(balrog_output)
 #    matchwithcosmos(ngmix_dfull, ngmix_dfull_match)
+<<<<<<< HEAD
+    stackwrite(y1a1_gold_tables, y1a1_gold)
+#    matchwithcosmos(y1_d04, y1_d04_match_file)
+#    chooseobjtype1(y1_d04)
+#    chooseobjtype1(y1_d04_cosmos)
+=======
 #    stackwrite(y1a1_d04_tables, y1_d04)
     match(y1_d04_cosmos, y1_dfull_cosmos, 'd04', 'dfull', d04_dfull_match_file, d04_dfull)
 #    matchwithcosmos(y1_d04, y1_d04_match_file)
+>>>>>>> 0ba7e91eb5d38b3f66cef6d052ac3b389004dafc
 
 def stackwrite(flist, output_file):
     tlist = [Table.read(table) for table in flist]

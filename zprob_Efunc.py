@@ -27,9 +27,9 @@ def Lbalrog(val, err, truevals):
     for trueval in truevals:
         ans = []
         for iv in range(len(val)):
-            args = ([val[iv]-trueval[iv])/err[iv]] + fit_params[iv]
+            args = [(val[iv]-trueval[iv])/err[iv]] + fit_params[iv]
             ans.append(fit(*args))
-        ls.append(np.prod(ans)))
+        ls.append(np.prod(ans))
     return ls
 
 def Lgauss(val, err, truevals):
