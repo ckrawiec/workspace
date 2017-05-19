@@ -1,5 +1,34 @@
 import numpy as np
 from astropy.io import fits
+from astropy.table import Column, Table, join
+
+def joincorrecttype(tab1_file, tab2_file, col1_name, col2_name, col_type):
+    """
+    Fix tables where matching columns are in different formats
+        by converting col2 to col_type.
+
+    Returns astropy Table joined on that column.
+    """
+    tab1 = Table.read(tab1_file)
+    tab2 = Table.read(tab2_file)
+    
+    keep = []
+    for row in range(len(tab2[col2_name])):
+        try:
+            col_type(tab2[col2_name][row])
+            keep.append(row)
+        except ValueError:
+            continue
+
+    tab2 = tab2[keep]
+    col2 = tab2[col2_name]
+    tab2.remove_column(col2_name)
+    tab2.add_column(Column(data=col2, name=col2_name, dtype=col_type))
+
+    if (col2_name != col1_name):
+        tab2.rename_column(col2_name, col1_name)
+    joined = join(tab1, tab2, keys=col1_name)
+    return joined
 
 def match(list1, list2):
     """
