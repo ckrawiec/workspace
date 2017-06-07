@@ -5,7 +5,8 @@ import os
 import matplotlib.pyplot as plt
 from astropy.table import Table, Column, vstack, join
 
-home_dir = '/Users/Christina/'#'/home/ckrawiec/'
+home_dir = '/home/ckrawiec/'
+#'/Users/Christina/'
 
 y1a1_gold_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_flux_auto_griz_*')
 y1a1_gold = '/home/ckrawiec/DES/data/y1a1_gold_flux_auto_griz.fits'
@@ -16,12 +17,14 @@ y1_d04 = home_dir+'DES/data/y1a1_gold_d04.fits'
 
 y1_dfull_match_file = home_dir+'DES/data/match_y1a1_gold_dfull_cosmos_1arcsec'
 y1_d04_match_file = home_dir+'DES/data/match_y1a1_gold_d04_cosmos_1arcsec'
-d04_dfull_match_file = home_dir+'DES/data/match_y1a1_gold_d04_dfull_cosmos_1arcsec'
+d04_dfull_match_file = home_dir+'DES/data/match_y1a1_gold_d04_dfull_1arcsec'
+d04_dfull_cosmos_match_file = home_dir+'DES/data/match_y1a1_gold_d04_dfull_cosmos_1arcsec'
 
 y1_d04_cosmos = home_dir+'DES/data/y1a1_gold_d04_cosmos.fits'
 y1_dfull_cosmos = home_dir+'DES/data/y1a1_gold_dfull_cosmos.fits'
 
-d04_dfull = home_dir+ 'DES/data/y1a1_gold_d04_dfull_cosmos_matched.fits'
+d04_dfull_cosmos = home_dir+'DES/data/y1a1_gold_d04_dfull_cosmos_matched.fits'
+d04_dfull = home_dir+'DES/data/y1a1_gold_d04_dfull_matched.fits'
 
 cosmos_file = home_dir+'COSMOS/data/COSMOS2015_Laigle+_v1.1.fits'
 
@@ -35,16 +38,13 @@ def maketables():
 #    makebalrog()
 #    chooseobjtype1(balrog_output)
 #    matchwithcosmos(ngmix_dfull, ngmix_dfull_match)
-<<<<<<< HEAD
-    stackwrite(y1a1_gold_tables, y1a1_gold)
+#    stackwrite(y1a1_gold_tables, y1a1_gold)
 #    matchwithcosmos(y1_d04, y1_d04_match_file)
 #    chooseobjtype1(y1_d04)
 #    chooseobjtype1(y1_d04_cosmos)
-=======
 #    stackwrite(y1a1_d04_tables, y1_d04)
-    match(y1_d04_cosmos, y1_dfull_cosmos, 'd04', 'dfull', d04_dfull_match_file, d04_dfull)
+    match(y1_d04, y1_dfull, 'd04', 'dfull', d04_dfull_match_file, d04_dfull)
 #    matchwithcosmos(y1_d04, y1_d04_match_file)
->>>>>>> 0ba7e91eb5d38b3f66cef6d052ac3b389004dafc
 
 def stackwrite(flist, output_file):
     tlist = [Table.read(table) for table in flist]
