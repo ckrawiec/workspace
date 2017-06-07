@@ -1,29 +1,38 @@
 import numpy as np
+import sys
 import glob
 import os
-#import esutil
+import esutil
 import matplotlib.pyplot as plt
 from astropy.table import Table, Column, vstack, join
 
 home_dir = '/home/ckrawiec/'
 #'/Users/Christina/'
 
-y1a1_gold_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_flux_auto_griz_*')
-y1a1_gold = '/home/ckrawiec/DES/data/y1a1_gold_flux_auto_griz.fits'
-y1a1_d04_tables = glob.glob('/home/ckrawiec/DES/data/y1a1_gold_d04_0000*fits')
+y1a1_gold_tables = glob.glob(home_dir+'DES/data/y1a1_gold_flux_auto_griz_*')
+y1a1_gold = home_dir+'DES/data/y1a1_gold_flux_auto_griz.fits'
+y1a1_d04_tables = glob.glob(home_dir+'DES/data/y1a1_gold_d04_0000*fits')
+y1a1_d10_tables = glob.glob(home_dir+'DES/data/y1a1_gold_d10_0000*fits')
 
 y1_dfull = home_dir+'DES/data/y1a1_gold_dfull.fits'
 y1_d04 = home_dir+'DES/data/y1a1_gold_d04.fits'
+y1_d10 = home_dir+'DES/data/y1a1_gold_d10.fits'
 
 y1_dfull_match_file = home_dir+'DES/data/match_y1a1_gold_dfull_cosmos_1arcsec'
 y1_d04_match_file = home_dir+'DES/data/match_y1a1_gold_d04_cosmos_1arcsec'
-d04_dfull_match_file = home_dir+'DES/data/match_y1a1_gold_d04_dfull_1arcsec'
+
 d04_dfull_cosmos_match_file = home_dir+'DES/data/match_y1a1_gold_d04_dfull_cosmos_1arcsec'
+d10_dfull_cosmos_match_file = home_dir+'DES/data/match_y1a1_gold_d10_dfull_cosmos_1arcsec'
+d04_dfull_match_file = home_dir+'DES/data/match_y1a1_gold_d04_dfull_1arcsec'
+d10_dfull_match_file = home_dir+'DES/data/match_y1a1_gold_d10_dfull_1arcsec'
 
 y1_d04_cosmos = home_dir+'DES/data/y1a1_gold_d04_cosmos.fits'
 y1_dfull_cosmos = home_dir+'DES/data/y1a1_gold_dfull_cosmos.fits'
+y1_d10_cosmos = home_dir+'DES/data/y1a1_gold_d10_cosmos.fits'
 
-d04_dfull_cosmos = home_dir+'DES/data/y1a1_gold_d04_dfull_cosmos_matched.fits'
+d04_dfull_cosmos = home_dir+ 'DES/data/y1a1_gold_d04_dfull_cosmos_matched.fits'
+d10_dfull_cosmos = home_dir+'DES/data/y1a1_gold_d10_dfull_cosmos_matched.fits'
+
 d04_dfull = home_dir+'DES/data/y1a1_gold_d04_dfull_matched.fits'
 
 cosmos_file = home_dir+'COSMOS/data/COSMOS2015_Laigle+_v1.1.fits'
@@ -42,9 +51,23 @@ def maketables():
 #    matchwithcosmos(y1_d04, y1_d04_match_file)
 #    chooseobjtype1(y1_d04)
 #    chooseobjtype1(y1_d04_cosmos)
-#    stackwrite(y1a1_d04_tables, y1_d04)
-    match(y1_d04, y1_dfull, 'd04', 'dfull', d04_dfull_match_file, d04_dfull)
+    stackwrite(y1a1_d10_tables, y1_d10)
+    match(y1_d10, y1_dfull_cosmos, 'd10', 'dfull', d10_dfull_cosmos_match_file, d10_dfull_cosmos)
 #    matchwithcosmos(y1_d04, y1_d04_match_file)
+#    chunkandwrite(d04_dfull_cosmos, 2)
+
+def chunkandwrite(table, nchunks):
+    sys.stderr.write('dividing table...\n')
+    tab = Table.read(table)
+    inds = np.arange(len(tab))
+    chunks = np.array_split(inds, nchunks)
+    ichunk = 1
+    for chunk in chunks:
+        sys.stderr.write('    working on chunk {}\n'.format(ichunk))
+        newtab = tab[chunk]
+        newtab.write(os.path.splitext(table)[0]+'_chunk{}-{}.fits'.format(str(ichunk).zfill(2), nchunks))
+        ichunk+=1
+    sys.stderr.write('done\n\n')
 
 def stackwrite(flist, output_file):
     tlist = [Table.read(table) for table in flist]
@@ -53,8 +76,11 @@ def stackwrite(flist, output_file):
     new_table.write(output_file)
 
 def match(file1, file2, name1, name2, match_file, outfile):
+    sys.stderr.write('matching {} and {}...\n'.format(file1, file2))
     tab1 = Table.read(file1)
     tab2 = Table.read(file2)
+
+    sys.stderr.write('    tables read in\n')
 
     h = esutil.htm.HTM(10)
     h.match(tab1['RA'], tab1['DEC'],
@@ -62,12 +88,14 @@ def match(file1, file2, name1, name2, match_file, outfile):
             radius=1./3600,
             file=match_file)
 
+    sys.stderr.write('    matched\n')
+
     m = h.read(match_file)
 
     m1, m2, merr = np.array(zip(*m))
 
-    print " {} matches".format(len(m1))
-    print " No duplicates in matched list?:{}".format(len(m1)==len(set(m1)))
+    sys.stderr.write('    {} matches\n'.format(len(m1)))
+    sys.stderr.write('    No duplicates in matched list?: {}\n'.format(len(m1)==len(set(m1))))
 
     m1_int = [int(g) for g in m1]
     m2_int = [int(c) for c in m2]
@@ -80,6 +108,7 @@ def match(file1, file2, name1, name2, match_file, outfile):
 
     new_tab.add_column(Column(name='match_err', data=merr))
     new_tab.write(outfile)
+    sys.stderr.write('done - matched table written to {}\n\n'.format(outfile))
 
 def matchwithcosmos(tab_file, match_file, nocosmos=False):
     print "Matching {} with {} within 1 arcsec...".format(tab_file, cosmos_file)
