@@ -5,45 +5,53 @@ import matplotlib.gridspec as gridspec
 import numpy as np
 from myutils import joincorrecttype
 from scipy import stats
+from scipy.misc import comb
 from astropy.table import Table, join, Column
 
 #uses z_column to check accuracy of results when target redshift is known
 check_truth = True
-z_column = 'ZMINCHI2_dfull'
-#'Z'
+
+z_column = 'Z'
+#'ZMINCHI2_dfull'
 #'photoz_dfull'
 
 #variables
-num_files = 1
-id_column_true = 'COADD_OBJECTS_ID_d10'
-#'BALROG_INDEX'
-id_column_targ = 'COADD_OBJECTS_ID_d10'
-#'BALROG_INDEX'
+num_files = 11
+id_column_true = 'BALROG_INDEX'
+#'COADD_OBJECTS_ID_d04'
+id_column_targ = 'BALROG_INDEX'
+#'COADD_OBJECTS_ID'
+#'COADD_OBJECTS_ID_d04'
 #'ID'
-z_groups = [[0.001, 1.0],
-            [1.0, 2.0],
-            [2.0, 3.0],
-            [3.0, 9.9]]
+z_groups = [[0.1, 0.8],
+            [0.8, 2.5],
+            [2.5, 9.9]]
 
 id_col_type = float
 
-truth_file = '/Users/Christina/DES/data/y1a1_gold_d10_dfull_cosmos_matched.fits'
+truth_file = '/Users/Christina/DES/data/balrog/sva1/balrog_sva1_tab{}_TRUTH.fits'
+#'/Users/Christina/DES/data/y1a1_gold_d04_dfull_cosmos_matched.fits'
 #'/Users/Christina/DES/data/y1a1_gold_d04_dfull_cosmos_matched_chunk{}-15.fits'
 #'/Users/Christina/DES/data/y1a1_spec_gold_v2_weight_depth.fits'
-data_file = '/Users/Christina/DES/data/y1a1_gold_d10_dfull_cosmos_matched.fits'
-#'/Users/Christina/DES/data/sva1_gold_auto_good_regions_no_cosmos.fits'
-#'/Users/Christina/DES/data/balrog/sva1/balrog_sva1_tab{}_TRUTH.fits'
+data_file = ''
+#'/Users/Christina/DES/data/y1a1_gold_flux_auto_griz_000001.fits'
+#'/Users/Christina/DES/data/balrog/sva1/balrog_sva1_tab01_TRUTH.fits'
 #'/Users/Christina/DES/data/balrog_sva1_TRUTH_zp_corr_fluxes_fixids.fits'
+#'/Users/Christina/DES/data/y1a1_gold_d04_dfull_cosmos_matched.fits'
+#'/Users/Christina/DES/data/sva1_gold_auto_good_regions_no_cosmos.fits'
 #'/Users/Christina/DES/magnification/lbgselect/mocks/run7/zprob_mock{}.fits'
 
-results_dir = '/Users/Christina/DES/magnification/lbgselect/zproboutput/'
-output_dir = '/Users/Christina/DES/magnification/lbgselect/zproboutput/'
-name = 'y1a1_gold_cosmosd10_cosmosdfull_matched_zminchi2_auto_griz_full_z3_4bins'
+results_dir = '/Users/Christina/DES/magnification/lbgselect/'
+output_dir = '/Users/Christina/test/'
+name = 'zprob_balrog_sva1_balrogz_z25_3bins_sigma_tree_noiseless_auto_both_zpcorr_griz_tab{}'
+#'y1a1_gold_cosmosdfull_zminchi2_auto_griz_z3_4bins_full_gauss_000001'
+#'balrog_sva1_balrogz_noiseless_Efuncnoised_z3_3bins_full_gauss_tab01'
+#'y1a1_gold_cosmosd04_cosmosdfull_zminchi2_auto_griz_full_z3_3bins'
+#'y1a1_gold_cosmosd04_cosmosdfull_matched_zminchi2_auto_griz_full_2gauss_z3_4bins'
+#'y1a1_gold_cosmosd04_cosmosdfull_matched_zminchi2_auto_griz_full_z3_4bins'
 #'sva1_gold_cosmos_zminchi2_auto_griz_z3_3bins_full_gauss'
 #'y1a1_gold_cosmosd04_cosmosdfull_matched_chunk{}-15_zminchi2_auto_griz_full_z0.5_3bins'
 #'y1a1_spec_gold_v2_cosmosdfull_zminchi2_auto_griz_full_z3_3bins'
-#'y1a1_gold_cosmosd04_cosmosdfull_matched_zminchi2_auto_griz_full_z0.5_3bins'
-#'zprob_balrog_sva1_balrogz_z25_3bins_sigma_tree_noiseless_auto_both_zpcorr_griz_tab{}'
 #'zprob_balrog_sva1_auto_cosmos_photoz_griz_zpcorr_full_z2.5_3bins_v2_tab{}'
 #'y1a1_gold_cosmosdfull_zminchi2_auto_griz_z3_3bins_full_gauss_000001'
 #'balrog_sva1_balrogz_0griz_auto_zpcorr_f1s1_full_z3_3bins_Efunc_tab{}'
@@ -53,12 +61,23 @@ name = 'y1a1_gold_cosmosd10_cosmosdfull_matched_zminchi2_auto_griz_full_z3_4bins
 #'y1a1_gold_cosmosd04_cosmosdfull_zminchi2_auto_griz_full_gauss_z3_3bins'
 #'y1a1_gold_cosmosd04_cosmosdfull_zminchi2_auto_griz_full_gauss_z3_3bins'
 #'zprob_balrog_sva1_auto_cosmos_photoz_griz_zpcorr_full_z2.5_3bins_v2_tab{}'
-#'balrog_sva1_balrogz_noiseless_Efuncnoised_z3_3bins_full_Efunc_tab01'
 #'balrog_sva1_balrogz_0griz_auto_zpcorr_f1s1_6culltree_z3_2bins_Efunc_tab{}'
 #'run7_mock{}_newL_6culltree'
 
 files = [''.join(os.path.splitext(f)[0]).split('/')[-1] for f in glob.glob(results_dir+name.format('*')+'*fits')]
 
+def Pf(x, N, M):
+    N, M = float(N), float(M)
+    return comb(N, M) * x**M * (1.-x)**(N-M) * (N+1.)
+
+def finderrors(xs, numlist, denlist, dx):
+    errors = []
+    for Mi, Ni in zip(numlist, denlist):
+        frac = Mi/float(Ni)
+        integ = np.array([np.sum(Pf(xs, Ni, Mi)[np.where((xs>=(frac-xi)) & (xs<=(frac+xi)))])*dx for xi in xs])
+        error = xs[np.argmin(np.abs(integ-0.68))]
+        errors.append(error)
+    return errors
 
 def autocolors(dtable, title, colormask): 
     gr = dtable['MAG_AUTO_G'] - dtable['MAG_AUTO_R']
@@ -174,7 +193,7 @@ def main():
 
     ###plotting
     #set up colors for each z group (to loop through)
-    colors = plt.cm.hsv(np.linspace(0, 1, len(z_groups)))
+    colors = plt.cm.hsv(np.linspace(0, 0.8, len(z_groups)))
 
     ##z-prob histograms
     #for each file
@@ -191,7 +210,7 @@ def main():
     #combined files
     for z_group in z_groups:
         P = np.hstack(results_dict['P'+str(z_group)])
-        plt.hist(P[~np.isnan(P)], bins=100,
+        plt.hist(P[~np.isnan(P)], bins=50,
                  histtype='step', log=True, label=str(z_group))
         plt.xlabel('P')
     plt.legend()
@@ -207,16 +226,19 @@ def main():
     xp = [ip+bin_size/2. for ip in Pbins]
 
     N_names = len(results_dict['name'])
+ #   print N_names
+ #   print results_dict['name']
     for z_group in z_groups:
-        results_dict['single_Ns'+str(z_group)] = [[]] * N_names
-        results_dict['cut_above_Ns'+str(z_group)] = [[]] * N_names
-        results_dict['cut_below_Ns'+str(z_group)] = [[]] * N_names
-        results_dict['cut_above_sums'+str(z_group)] = [[]] * N_names
-        results_dict['cut_below_sums'+str(z_group)] = [[]] * N_names
-        results_dict['P_bin_sums'+str(z_group)] = [[]] * N_names
+        results_dict['single_Ns'+str(z_group)] = [[] for i in range(N_names)]
+        results_dict['cut_above_Ns'+str(z_group)] = [[] for i in range(N_names)]
+        results_dict['cut_below_Ns'+str(z_group)] = [[] for i in range(N_names)]
+        results_dict['cut_above_sums'+str(z_group)] = [[] for i in range(N_names)]
+        results_dict['cut_below_sums'+str(z_group)] = [[] for i in range(N_names)]
+        results_dict['P_bin_sums'+str(z_group)] = [[] for i in range(N_names)]
         if check_truth==True:
-            results_dict['correct'+str(z_group)] = [[]] * N_names
-        
+            results_dict['correct'+str(z_group)] = [[] for i in range(N_names)]
+#    print len(results_dict['single_Ns'+str(z_groups[0])])
+
     for i in range(len(results_dict['name'])):
 
         for z_group in z_groups:           
@@ -236,81 +258,104 @@ def main():
                 results_dict['cut_above_sums'+str(z_group)][i].append(np.sum(P[cut_above_mask]))
                 results_dict['cut_below_sums'+str(z_group)][i].append(np.sum(P[cut_below_mask]))
                 results_dict['P_bin_sums'+str(z_group)][i].append(np.sum(P[single_mask]))
-                                
                 if check_truth==True:
                     #number of objects in bin truly in z_group
                     results_dict['correct'+str(z_group)][i].append(float(len(P[results_dict['mask'+str(z_group)][i] & single_mask])))
-                            
-        #plot them for each file
-        for i in range(N_names):
-            #cumulative totals
-            ci=0
-            for z_group in z_groups:
-                plt.bar(xp, results_dict['single_Ns'+str(z_group)][i],
-                        align='center', alpha=0.3, width=bin_size,
-                        color=colors[ci], log=True)
-                plt.plot(xp, results_dict['cut_above_Ns'+str(z_group)][i],
-                         'o-', c=colors[ci], label=str(z_group))
-                plt.plot(xp, results_dict['cut_below_Ns'+str(z_group)][i],
-                         'o--', c=colors[ci])
-            
-                ci+=1
-            plt.legend(loc='best')
-            plt.grid()
-            plt.xlabel('P')
-            plt.ylabel('N > P (-), N < P (--)')
-            plt.yscale('log')
-            plt.savefig(output_dir+results_dict['name'][i]+'_Pbin_totals.png')
-            plt.close()
 
-            #cumulative sums
-            ci=0
-            for z_group in z_groups:
-                plt.bar(xp, results_dict['single_Ns'+str(z_group)][i],
-                        align='center', alpha=0.3, width=bin_size,
-                        color=colors[ci], log=True)
-                plt.plot(xp, results_dict['cut_above_sums'+str(z_group)][i],
-                         'o-', c=colors[ci], label=str(z_group))
-                plt.plot(xp, results_dict['cut_below_sums'+str(z_group)][i],
-                         'o--', c=colors[ci])
-                ci+=1
-            plt.legend(loc='best')
-            plt.grid()
-            plt.xlabel('P')
-            plt.ylabel('cumulative sums [>P (-), <P (--)]')
-            plt.yscale('log')
-            plt.savefig(output_dir+results_dict['name'][i]+'_Pbin_cumsums.png')
-            plt.close()
+    #print len(results_dict['single_Ns'+str(z_group)[0]])
+    
+    #plot them for each file
+        
+    for i in range(N_names):
+        #bar hist
+        ci=0
+        for z_group in z_groups:
+            plt.bar(xp, results_dict['single_Ns'+str(z_group)][i],
+                    align='center', width=bin_size, color=colors[ci], alpha=0.2,
+                    log=True, label=str(z_group))
+#            plt.scatter(xp, results_dict['single_Ns'+str(z_group)][i],
+#                        c=colors[ci])
+            ci+=1
+        plt.xlabel('P')
+        plt.ylabel('N')
+        plt.legend(loc='best')
+        plt.savefig(output_dir+results_dict['name'][i]+'_Pbin_hist.png')
+        plt.close()
+
+        #cumulative totals
+        ci=0
+        for z_group in z_groups:
+            plt.plot(xp, results_dict['cut_above_Ns'+str(z_group)][i],
+                     'o-', markeredgecolor='none', c=colors[ci], label=str(z_group))
+            plt.plot(xp, results_dict['cut_below_Ns'+str(z_group)][i],
+                     'o--', markeredgecolor='none', c=colors[ci])
+            ci+=1
+        plt.legend(loc='best')
+        plt.grid()
+        plt.xlabel('P')
+        plt.ylabel('cumulative number')
+        plt.yscale('log')
+        plt.savefig(output_dir+results_dict['name'][i]+'_Pbin_cumnumber.png')
+        plt.close()
+
+        #cumulative sums
+        ci=0
+        for z_group in z_groups:
+            plt.plot(xp, results_dict['cut_above_sums'+str(z_group)][i],
+                     'o-', markeredgecolor='none', c=colors[ci], label=str(z_group))
+            plt.plot(xp, results_dict['cut_below_sums'+str(z_group)][i],
+                     'o--', markeredgecolor='none', c=colors[ci])
+            ci+=1
+        plt.legend(loc='best')
+        plt.grid()
+        plt.xlabel('P')
+        plt.ylabel('cumulative sums')
+        plt.yscale('log')
+        plt.savefig(output_dir+results_dict['name'][i]+'_Pbin_cumsums.png')
+        plt.close()
     
     #combined files
     ci=0
     for z_group in z_groups:
         plt.bar(xp, np.sum(results_dict['single_Ns'+str(z_group)], axis=0),
-                align='center', width=bin_size, color=colors[ci], alpha=0.3, log=True)
-        plt.plot(xp, np.sum(results_dict['cut_above_Ns'+str(z_group)], axis=0),
-                'o-', c=colors[ci], label=str(z_group))
-        plt.plot(xp, np.sum(results_dict['cut_below_Ns'+str(z_group)], axis=0),
-                'o--', c=colors[ci])
+                align='center', width=bin_size, color=colors[ci], alpha=0.2,
+                log=True, label=str(z_group))
+        plt.scatter(xp, np.sum(results_dict['single_Ns'+str(z_group)], axis=0),
+                    edgecolor='none', c=colors[ci])
         ci+=1
     plt.xlabel('P')
-    plt.ylabel('N > P (-), N < P (--)')
-    plt.grid()
+    plt.ylabel('N')
     plt.legend(loc='best')
-    plt.savefig(output_dir+name.format('')+'_Pbin_totals.png')
+    plt.xlim(0., 1.)
+    plt.savefig(output_dir+name.format('')+'_Pbin_hist.png')
     plt.close()
 
     ci=0
     for z_group in z_groups:
-        plt.bar(xp, np.sum(results_dict['single_Ns'+str(z_group)], axis=0),
-                align='center', width=bin_size, color=colors[ci], alpha=0.3, log=True)
-        plt.plot(xp, np.sum(results_dict['cut_above_sums'+str(z_group)], axis=0),
-                'o-', c=colors[ci], label=str(z_group))
-        plt.plot(xp, np.sum(results_dict['cut_below_sums'+str(z_group)], axis=0),
-                'o--', c=colors[ci])
+        plt.plot(xp, np.sum(results_dict['cut_above_Ns'+str(z_group)], axis=0),
+                'o-', markeredgecolor='none', c=colors[ci], label=str(z_group))
+        plt.plot(xp, np.sum(results_dict['cut_below_Ns'+str(z_group)], axis=0),
+                'o--', markeredgecolor='none', c=colors[ci])
         ci+=1
     plt.xlabel('P')
-    plt.ylabel('cumulative sums [>P (-), <P (--)]')
+    plt.ylabel('cumulative number')
+    plt.yscale('log')
     plt.grid()
+    plt.legend(loc='best')
+    plt.savefig(output_dir+name.format('')+'_Pbin_cumnumber.png')
+    plt.close()
+
+    ci=0
+    for z_group in z_groups:
+        plt.plot(xp, np.sum(results_dict['cut_above_sums'+str(z_group)], axis=0),
+                'o-', markeredgecolor='none', c=colors[ci], label=str(z_group))
+        plt.plot(xp, np.sum(results_dict['cut_below_sums'+str(z_group)], axis=0),
+                'o--', markeredgecolor='none', c=colors[ci])
+        ci+=1
+    plt.xlabel('P')
+    plt.ylabel('cumulative sums')
+    plt.grid()
+    plt.yscale('log')
     plt.legend(loc='best')
     plt.savefig(output_dir+name.format('')+'_Pbin_cumsums.png')
     plt.close()
@@ -407,25 +452,36 @@ def main():
         plt.close()
     
         ##true ratio in P bins
+        xf = np.arange(0., 1., 0.001)
+        dx = xf[1]-xf[0]
         #each file
         for i in range(len(results_dict['name'])):
             ci=0
             plt.plot(xp, xp, 'k--', lw=2.)
             for iz in range(len(z_groups)):
-                plt.plot(xp, np.array(all_tt[i][iz])/np.array(all_lenP[i][iz]), 'o-', c=colors[ci], label=str(z_groups[iz]))
+                Ms = np.array(all_tt[i][iz])
+                Ns = np.array(all_lenP[i][iz])
+                errors = finderrors(xf, Ms, Ns, dx)
+                plt.errorbar(xp, Ms/Ns, yerr=errors, ecolor=colors[ci])
+                plt.plot(xp, Ms/Ns, 'o-', c=colors[ci], label=str(z_groups[iz]))
                 ci+=1
+            plt.ylim(0., 1.)
             plt.xlabel('P')
             plt.ylabel('Fraction of objects truly in redshift range')
             plt.grid()
             plt.legend(loc='best')
             plt.savefig(output_dir+results_dict['name'][i]+'_Prange_trueratio.png')
             plt.close()
-        
+            
         #combined files
         ci=0
         plt.plot(xp, xp, 'k--', lw=2.)
         for iz in range(len(z_groups)):
-            plt.plot(xp, np.sum(all_tt, axis=0)[iz]/np.sum(all_lenP, axis=0)[iz], 'o-', c=colors[ci], label=str(z_groups[iz]))
+            Ms = np.sum(all_tt, axis=0)[iz]
+            Ns = np.sum(all_lenP, axis=0)[iz]
+            errors = finderrors(xf, Ms, Ns, dx)
+            plt.errorbar(xp, Ms/Ns, yerr=errors, ecolor=colors[ci])
+            plt.plot(xp, Ms/Ns, 'o-', c=colors[ci], label=str(z_groups[iz]))
             ci+=1
         plt.xlabel('P')
         plt.ylabel('Fraction of objects truly in redshift range')

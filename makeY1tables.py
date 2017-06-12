@@ -1,4 +1,5 @@
 import numpy as np
+import healpy as hp
 import sys
 import glob
 import os
@@ -17,7 +18,11 @@ y1_dfull = home_dir+'DES/data/y1a1_gold_dfull.fits'
 y1_d04 = home_dir+'DES/data/y1a1_gold_d04.fits'
 y1_d10 = home_dir+'DES/data/y1a1_gold_d10.fits'
 
+y1_dfull_cosmos_masked = home_dir+'DES/data/y1a1_gold_dfull_cosmos_masked.fits'
+y1_dfull_masked = home_dir+'DES/data/y1a1_gold_dfull_masked.fits'
+
 y1_dfull_match_file = home_dir+'DES/data/match_y1a1_gold_dfull_cosmos_1arcsec'
+y1_dfull_masked_cosmos_match_file = home_dir+'DES/data/match_y1a1_gold_dfull_masked_cosmos_1arcsec'
 y1_d04_match_file = home_dir+'DES/data/match_y1a1_gold_d04_cosmos_1arcsec'
 d04_dfull_cosmos_match_file = home_dir+'DES/data/match_y1a1_gold_d04_dfull_cosmos_1arcsec'
 d10_dfull_cosmos_match_file = home_dir+'DES/data/match_y1a1_gold_d10_dfull_cosmos_1arcsec'
@@ -48,9 +53,10 @@ def maketables():
 #    matchwithcosmos(y1_d04, y1_d04_match_file)
 #    chooseobjtype1(y1_d04)
 #    chooseobjtype1(y1_d04_cosmos)
-    stackwrite(y1a1_d10_tables, y1_d10)
-    match(y1_d10, y1_dfull_cosmos, 'd10', 'dfull', d10_dfull_cosmos_match_file, d10_dfull_cosmos)
-#    matchwithcosmos(y1_d04, y1_d04_match_file)
+    mask(y1_dfull_cosmos, y1_dfull_cosmos_masked)
+#    stackwrite(y1a1_d10_tables, y1_d10)
+#    match(y1_d10, y1_dfull_cosmos, 'd10', 'dfull', d10_dfull_cosmos_match_file, d10_dfull_cosmos)
+#    matchwithcosmos(y1_dfull_masked, y1_dfull_masked_cosmos_match_file)
 #    chunkandwrite(d04_dfull_cosmos, 2)
 
 def chunkandwrite(table, nchunks):
@@ -70,6 +76,29 @@ def stackwrite(flist, output_file):
     tlist = [Table.read(table) for table in flist]
     new_table = vstack(tlist)
     del tlist
+    new_table.write(output_file)
+
+def mask(table, output_file):
+    if table==y1_dfull_cosmos:
+        footmask=hp.read_map(home_dir+'DES/data/y1a1_gold_1.0.2_dfull_footprint_4096.fits.gz')
+        badmask=hp.read_map(home_dir+'DES/data/y1a1_gold_1.0.2_dfull_badmask_4096.fits.gz',
+                            dtype=np.int32)
+    else:
+        return False
+
+    tab = Table.read(table)
+    nside = hp.npix2nside(footmask.size)
+    print "NSIDE = ", nside
+
+    theta = (90.0 - tab['DEC'])*np.pi/180.
+    phi = tab['RA']*np.pi/180.
+    pix = hp.ang2pix(nside, theta, phi)
+    ipring, = np.where((footmask[pix] >= 1) & (badmask[pix] == 0))
+
+    new_table = tab[ipring]
+    del tab
+    sys.stderr.write("deleted old table, writing to file...\n")
+    
     new_table.write(output_file)
 
 def match(file1, file2, name1, name2, match_file, outfile):
