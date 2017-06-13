@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import glob
 import os
-import esutil
+#import esutil
 import matplotlib.pyplot as plt
 from astropy.table import Table, Column, vstack, join
 
@@ -51,8 +51,8 @@ def maketables():
 #    matchwithcosmos(y1_d04, y1_d04_match_file)
 #    chooseobjtype1(y1_d04)
 #    chooseobjtype1(y1_d04_cosmos)
-    stackwrite(y1a1_d10_tables, y1_d10)
-    match(y1_d10, y1_dfull_cosmos, 'd10', 'dfull', d10_dfull_cosmos_match_file, d10_dfull_cosmos)
+    stackwrite(y1a1_gold_tables, y1a1_gold)
+#    match(y1_d10, y1_dfull_cosmos, 'd10', 'dfull', d10_dfull_cosmos_match_file, d10_dfull_cosmos)
 #    matchwithcosmos(y1_d04, y1_d04_match_file)
 #    chunkandwrite(d04_dfull_cosmos, 2)
 
