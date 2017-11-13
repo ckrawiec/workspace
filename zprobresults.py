@@ -1,70 +1,55 @@
 import os
+import sys
 import glob
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
+import ConfigParser
 from myutils import joincorrecttype
 from scipy import stats
 from scipy.misc import comb
 from astropy.table import Table, join, Column
+from runzprob import parseconfig
 
-#uses z_column to check accuracy of results when target redshift is known
-check_truth = True
+home_dir = '/Users/Christina/'
+if home_dir == '/Users/Christina/':
+    import healpy as hp
 
-z_column = 'Z'
-#'ZMINCHI2_dfull'
-#'photoz_dfull'
 
-#variables
-num_files = 11
-id_column_true = 'BALROG_INDEX'
-#'COADD_OBJECTS_ID_d04'
-id_column_targ = 'BALROG_INDEX'
-#'COADD_OBJECTS_ID'
-#'COADD_OBJECTS_ID_d04'
-#'ID'
-z_groups = [[0.1, 0.8],
-            [0.8, 2.5],
-            [2.5, 9.9]]
 
-id_col_type = float
+def rparseconfig(config_file):
+    config = ConfigParser.SafeConfigParser()
+    config.read(config_file)
 
-truth_file = '/Users/Christina/DES/data/balrog/sva1/balrog_sva1_tab{}_TRUTH.fits'
-#'/Users/Christina/DES/data/y1a1_gold_d04_dfull_cosmos_matched.fits'
-#'/Users/Christina/DES/data/y1a1_gold_d04_dfull_cosmos_matched_chunk{}-15.fits'
-#'/Users/Christina/DES/data/y1a1_spec_gold_v2_weight_depth.fits'
-data_file = ''
-#'/Users/Christina/DES/data/y1a1_gold_flux_auto_griz_000001.fits'
-#'/Users/Christina/DES/data/balrog/sva1/balrog_sva1_tab01_TRUTH.fits'
-#'/Users/Christina/DES/data/balrog_sva1_TRUTH_zp_corr_fluxes_fixids.fits'
-#'/Users/Christina/DES/data/y1a1_gold_d04_dfull_cosmos_matched.fits'
-#'/Users/Christina/DES/data/sva1_gold_auto_good_regions_no_cosmos.fits'
-#'/Users/Christina/DES/magnification/lbgselect/mocks/run7/zprob_mock{}.fits'
+    rparams = {}
+    rparams['check_truth'] = config.getboolean('Parameters', 'check_truth')
+    
+    rparams['num_files'] = config.getint('Parameters', 'num_files')
+    rparams['truth_file'] = config.get('Parameters', 'truth_file')
+    rparams['data_file'] = config.get('Parameters', 'data_file')
+    rparams['redshift_column'] = config.get('Parameters', 'redshift_column')
 
-results_dir = '/Users/Christina/DES/magnification/lbgselect/'
-output_dir = '/Users/Christina/test/'
-name = 'zprob_balrog_sva1_balrogz_z25_3bins_sigma_tree_noiseless_auto_both_zpcorr_griz_tab{}'
-#'y1a1_gold_cosmosdfull_zminchi2_auto_griz_z3_4bins_full_gauss_000001'
-#'balrog_sva1_balrogz_noiseless_Efuncnoised_z3_3bins_full_gauss_tab01'
-#'y1a1_gold_cosmosd04_cosmosdfull_zminchi2_auto_griz_full_z3_3bins'
-#'y1a1_gold_cosmosd04_cosmosdfull_matched_zminchi2_auto_griz_full_2gauss_z3_4bins'
-#'y1a1_gold_cosmosd04_cosmosdfull_matched_zminchi2_auto_griz_full_z3_4bins'
-#'sva1_gold_cosmos_zminchi2_auto_griz_z3_3bins_full_gauss'
-#'y1a1_gold_cosmosd04_cosmosdfull_matched_chunk{}-15_zminchi2_auto_griz_full_z0.5_3bins'
-#'y1a1_spec_gold_v2_cosmosdfull_zminchi2_auto_griz_full_z3_3bins'
-#'zprob_balrog_sva1_auto_cosmos_photoz_griz_zpcorr_full_z2.5_3bins_v2_tab{}'
-#'y1a1_gold_cosmosdfull_zminchi2_auto_griz_z3_3bins_full_gauss_000001'
-#'balrog_sva1_balrogz_0griz_auto_zpcorr_f1s1_full_z3_3bins_Efunc_tab{}'
-#'sva1_gold_cosmosdfull_photoz_auto_griz_z3_3bins_full_gauss_0-500000'
-#'y1a1_gold_cosmosdfulld04noised_cosmosdfull_photoz_auto_griz_full_gauss_z3_2bins'
-#'y1a1_gold_cosmosd04_cosmosdfull_matched_photoz_auto_griz_full_z3_3bins'
-#'y1a1_gold_cosmosd04_cosmosdfull_zminchi2_auto_griz_full_gauss_z3_3bins'
-#'y1a1_gold_cosmosd04_cosmosdfull_zminchi2_auto_griz_full_gauss_z3_3bins'
-#'zprob_balrog_sva1_auto_cosmos_photoz_griz_zpcorr_full_z2.5_3bins_v2_tab{}'
-#'balrog_sva1_balrogz_0griz_auto_zpcorr_f1s1_6culltree_z3_2bins_Efunc_tab{}'
-#'run7_mock{}_newL_6culltree'
+    rparams['results_dir'] = config.get('Parameters', 'results_dir')
+    rparams['output_dir'] = config.get('Parameters', 'output_dir')
 
-files = [''.join(os.path.splitext(f)[0]).split('/')[-1] for f in glob.glob(results_dir+name.format('*')+'*fits')]
+    return rparams
+    
+def mask(table, ra_col='RA', dec_col='DEC', y1a1_wide=True):
+    if y1a1_wide:
+        footmask=hp.read_map(home_dir+'DES/data/y1a1_gold_1.0.2_dfull_footprint_4096.fits.gz')
+        badmask=hp.read_map(home_dir+'DES/data/y1a1_gold_1.0.3_wide_badmask_4096.fits.gz',
+                            dtype=np.int32)
+    nside = hp.npix2nside(footmask.size)
+    print "NSIDE = ", nside
+
+    theta = (90.0 - table[dec_col])*np.pi/180.
+    phi = table[ra_col]*np.pi/180.
+    pix = hp.ang2pix(nside, theta, phi)
+    ipring, = np.where((footmask[pix] >= 1) & (badmask[pix] == 0))
+
+    new_table = table[ipring]
+
+    return new_table
 
 def Pf(x, N, M):
     N, M = float(N), float(M)
@@ -94,7 +79,31 @@ def autocolors(dtable, title, colormask):
     plt.savefig(title+'_autocolors.png')
     plt.close()
 
-def main():
+def main(args):
+    params = parseconfig(args[1])
+    rparams = rparseconfig(args[2])
+
+    name = os.path.splitext(os.path.basename(params['output_file']))[0]
+
+    z_column = rparams['redshift_column']
+    z_groups = params['redshift_ranges']
+    id_column_targ = params['target_id_column']
+    id_column_true = id_column_targ
+
+    check_truth = rparams['check_truth']
+
+    truth_file = rparams['truth_file']
+    data_file = rparams['data_file']
+
+    results_dir = rparams['results_dir']
+    output_dir = rparams['output_dir']
+
+    num_files = rparams['num_files']
+    
+    files = [''.join(os.path.splitext(f)[0]).split('/')[-1] for f in glob.glob(results_dir+name.format('*')+'*fits')]
+
+    id_col_type = float
+    
     print "Files found: "
     for fi in files:
         print "    ", fi
@@ -151,6 +160,7 @@ def main():
             joined = joincorrecttype(trues[i], table_name,
                                      id_column_true, id_column_targ,
                                      id_col_type)
+            
             f.write("Length of joined table: {}\n".format(len(joined)))
     
             #remove objects outside of redshift range
@@ -159,10 +169,17 @@ def main():
             f.write("\n"+names[i]+"\n")
     
         else:
-            #joined = joincorrecttype(table_name, data_file,
-            #                         id_column_targ, id_column_targ,
-            #                         id_col_type)
-            joined = Table.read(table_name)
+            if len(data_file)>0:
+                joined = joincorrecttype(data_file, table_name,
+                                        id_column_targ, id_column_targ,
+                                        id_col_type)
+               # if 'maskedtargets' in output_dir:
+               #     sys.stderr.write('masking...\n')
+               #     joined = mask(joined)
+               #     sys.stderr.write('done\n')
+                
+            else:
+                joined = Table.read(table_name)
             
             
         #loop through redshift groups and save P & N info
@@ -270,14 +287,18 @@ def main():
         #bar hist
         ci=0
         for z_group in z_groups:
-            plt.bar(xp, results_dict['single_Ns'+str(z_group)][i],
-                    align='center', width=bin_size, color=colors[ci], alpha=0.2,
-                    log=True, label=str(z_group))
-#            plt.scatter(xp, results_dict['single_Ns'+str(z_group)][i],
-#                        c=colors[ci])
-            ci+=1
+            try:
+                plt.bar(xp, results_dict['single_Ns'+str(z_group)][i],
+                        align='center', width=bin_size, color=colors[ci], alpha=0.2,
+                        log=True, label=str(z_group))
+    #            plt.scatter(xp, results_dict['single_Ns'+str(z_group)][i],
+    #                        c=colors[ci])
+                ci+=1
+            except ValueError:
+                pass
         plt.xlabel('P')
         plt.ylabel('N')
+#        plt.ylim(1., 1.e6)
         plt.legend(loc='best')
         plt.savefig(output_dir+results_dict['name'][i]+'_Pbin_hist.png')
         plt.close()
@@ -327,7 +348,24 @@ def main():
     plt.ylabel('N')
     plt.legend(loc='best')
     plt.xlim(0., 1.)
+#    plt.ylim(1., 1.e6)
     plt.savefig(output_dir+name.format('')+'_Pbin_hist.png')
+    plt.close()
+
+     #combined files
+    ci=0
+    for z_group in z_groups:
+        plt.bar(xp, np.sum(results_dict['single_Ns'+str(z_group)], axis=0)/float(len(np.hstack(results_dict['P'+str(z_groups[0])]))),
+                align='center', width=bin_size, color=colors[ci], alpha=0.2,
+                log=True, label=str(z_group))
+        plt.scatter(xp, np.sum(results_dict['single_Ns'+str(z_group)], axis=0)/float(len(np.hstack(results_dict['P'+str(z_groups[0])]))),
+                    edgecolor='none', c=colors[ci])
+        ci+=1
+    plt.xlabel('P')
+    plt.ylabel('N/Ntot')
+    plt.legend(loc='best')
+    plt.xlim(0., 1.)
+    plt.savefig(output_dir+name.format('')+'_Pbin_frachist.png')
     plt.close()
 
     ci=0
@@ -487,6 +525,7 @@ def main():
         plt.ylabel('Fraction of objects truly in redshift range')
         plt.grid()
         plt.legend(loc='best')
+        plt.ylim(0., 1.)
         plt.savefig(output_dir+name.format('')+'_Prange_trueratio.png')
         plt.close()
     
@@ -523,5 +562,5 @@ def main():
     f.close()
 
 if __name__=="__main__":
-    main()
+    main(sys.argv)
     
