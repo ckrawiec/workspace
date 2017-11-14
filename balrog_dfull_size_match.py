@@ -11,7 +11,11 @@ import time
 from astropy.table import join
 from astropy.io import fits
 from scipy.spatial import ckdtree
+from scipy.interpolate import griddata
 from matplotlib import cm
+
+#frequency of objects to query tree with for now
+freq = 100
 
 # Read Data
 #Balrog truth table - eventually all tables
@@ -47,18 +51,6 @@ astars = adfull['MODEST_CLASS']==0
 agals = adfull['MODEST_CLASS']==1
 bstars = obsim['OBJTYPE']==3 #or MODEST_CLASS?
 
-plt.hist(adfull['FLUX_RADIUS_I'][astars], histtype='step', normed=True, bins=1000, label='dfull stars fr')
-plt.hist(adfull['FLUX_RADIUS_I'][agals], histtype='step', normed=True, bins=1000, label='dfull gals fr')
-plt.hist(brog['HALFLIGHTRADIUS_0'], histtype='step', normed=True, bins=100, label='balrog gals hlr')
-plt.hist(bsim['FLUX_RADIUS_I'], histtype='step', normed=True, bins=6000, label='balrog gals fr')
-plt.hist(obsim['FLUX_RADIUS_I'][bstars], histtype='step', normed=True, bins=6000, label='balrog stars fr')
-plt.legend(loc='best')
-plt.xlim(0, 4)
-plt.show()
-
-exit()
-
-
 # Check Size Scaling
 # in arcsec
 dfull_size = dfull['FLUX_RADIUS_I']
@@ -75,7 +67,7 @@ sys.stderr.write('creating tree...\n')
 star_tree = ckdtree.cKDTree(zip(adfull[astars]['RA'],
                         adfull[astars]['DEC']))
 
-gal_pos = zip(adfull[agals]['RA'][::10], adfull[agals]['DEC'][::10])
+gal_pos = zip(adfull[agals]['RA'][::freq], adfull[agals]['DEC'][::freq])
 #360 arcsec
 close = star_tree.query_ball_point(gal_pos, r=0.1)
 sys.stderr.write("number of matches for first object: {}\n".format(len(close[0])))
@@ -86,7 +78,7 @@ sys.stderr.write("galaxies in sim balrog: {}\n".format(len(bsim)))
 sys.stderr.write('creating tree...\n')
 
 brog_star_tree = ckdtree.cKDTree(zip(obsim['RA'][bstars], obsim['DEC'][bstars]))
-sim_pos = zip(bsim['ALPHAMODEL_J2000_G'][::100], bsim['DELTAMODEL_J2000_G'][::100])
+sim_pos = zip(bsim['ALPHAMODEL_J2000_G'][::freq], bsim['DELTAMODEL_J2000_G'][::freq])
 brog_close = brog_star_tree.query_ball_point(sim_pos, r=0.1)
 
 #calculate average star size around each galaxy
@@ -100,10 +92,22 @@ end = time.time()
 sys.stderr.write('time to calculate radii = {}s\n'.format(end-start))
 
 df = pandas.DataFrame({'brog_psf': brog_avg_psf, 
-                      'brog_rad': bsim['FLUX_RADIUS_I'][::100],
-                      'brog_hlr': bsim['HALFLIGHTRADIUS_0'][::100]})
+                      'brog_rad': bsim['FLUX_RADIUS_I'][::freq],
+                      'brog_hlr': bsim['HALFLIGHTRADIUS_0'][::freq]})
 
-trim_df = df[(df['brog_psf']<3.) & (df['brog_rad'] > 0.) & (df['brog_rad']<8.)]
+interp = griddata(zip(df['brog_rad'], df['brog_psf']),
+                  df['brog_hlr'],
+                  zip(adfull['FLUX_RADIUS_I'][astars], avg_psf))
 
-trim_df.plot.hexbin('brog_psf', 'brog_rad', C='brog_hlr', gridsize=100, colormap=cm.jet)
+plt.hist(df['brog_hlr'], histtype='step', normed=True, bins=100,
+         label='brog hlr')
+plt.hist(interp[~np.isnan(interp)], histtype='step', normed=True, bins=100,
+         label='interp')
+plt.legend(loc='best')
 plt.show()
+
+tab = Table()
+tab['flux_radius_i'] = df['brog_rad']
+tab['avg_flux_radius_i'] = df['brog_psf']
+tab['hlr'] = df['brog_hlr']
+tab.write('/Users/Christina/DES/data/balrog/sva1/balrog_tab01_avg_star_fluxradiusi_0.1deg.fits')
