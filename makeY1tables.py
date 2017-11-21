@@ -62,6 +62,8 @@ def maketables():
 #    matchwithcosmos(ngmix_dfull, ngmix_dfull_match)
 #    stackwrite(y1a1_gold_tables, y1a1_gold)
 #    stackwrite(y1_zp_tables, y1_zp_table)
+    y3_gold = glob.glob(home_dir+'DES/data/y3_gold_v1.0_stars_flux_00000*.fits')
+    stackwrite(y3_gold, home_dir+'DES/data/y3_gold_v1.0_stars_flux.fits')
 #    mask(y1_zp_match)
 #    flagmask(y1_zp_match)
 #    flagmask(y1d04dfullzp, col='FLAGS_GOLD_d04')
@@ -80,8 +82,8 @@ def maketables():
 #             col='FLAGS_BADREGION_d04', val=64, tag='d04flagBR64masked')
 #    flagmask('/Users/Christina/DES/data/y1a1_gold_d04_dfull_cosmos_matched_d04flagBR64masked.fits',
 #             col='FLAGS_BADREGION_dfull', val=64, tag='dfullflagBR64masked')
-    flagmask('/Users/Christina/DES/data/y1a1_gold_dfull_cosmos.fits',
-             col='FLAGS_BADREGION', tag='flagBR64masked')
+#    flagmask('/Users/Christina/DES/data/y1a1_gold_dfull_cosmos.fits',
+#             col='FLAGS_BADREGION', tag='flagBR64masked')
 #    matchwithcosmos(y1_d04, y1_d04_match_file)
 #    chooseobjtype1(y1_d04)
 #    chooseobjtype1(y1_d04_cosmos)
