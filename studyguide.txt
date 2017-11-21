@@ -703,3 +703,26 @@ Gillis & Taylor
 -mu estimator easier to use for mass mapping
 -errors from standard deviation of different annuli/lens source pairs
 +standard error on set of annuli
+
+Tudorica et al. 2017
+Weak Lensing Magnification of SpARCS galaxy clusters
+-use magnification to measure mass-richness relation up to z=1.4
+-cut used to produce contamination level below 10% for each mag bin
+(from stars and low-z interlopers)
+-require candidates to have SE CLASS_STAR smaller than 0.9
+-smaller than 5" since LBGs at z=3.1 have max size of 2-3" (Giavalisco
+et al. 1996)
+-visually inspected each LBG to reject extended objects, bright knots
+in spirals, densely populated fields, image defects
+-16k u-dropouts
+-at small radii, clusters can mask up to 10-20% of the annulus area
+(Umetsu et al 2011 - Appendix A)
+-boosted mag signal by area
+-calibrate measurements using external LBG luminosity function
+-287 SpARCS cluster candidates with high significance
+-5.5sigma detection
+-average halo mass 1.3e14Msun
+
+
+Ford et al 2012/2014?
+
