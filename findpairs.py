@@ -30,7 +30,7 @@ def main():
     params = parseconfig('findpairs.config')
     
     #radii - same units as positions
-    r_range = np.logspace(-2, -1, 4)
+    r_range = np.logspace(-2, 0, 5)
 
     #read files
     start_d = time.time()

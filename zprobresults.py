@@ -1,5 +1,7 @@
 import os
 import glob
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
@@ -9,27 +11,30 @@ from scipy.misc import comb
 from astropy.table import Table, join, Column
 
 #uses z_column to check accuracy of results when target redshift is known
-check_truth = True
-
-z_column = 'Z'
+check_truth = False
+z_column = ''
+#'Z'
 #'ZMINCHI2_dfull'
 #'photoz_dfull'
 
 #variables
-num_files = 11
-id_column_true = 'BALROG_INDEX'
+num_files = 9
+id_column_true = ''
+#'BALROG_INDEX'
 #'COADD_OBJECTS_ID_d04'
-id_column_targ = 'BALROG_INDEX'
-#'COADD_OBJECTS_ID'
+id_column_targ = 'COADD_OBJECTS_ID' 
+#'BALROG_INDEX'
 #'COADD_OBJECTS_ID_d04'
 #'ID'
-z_groups = [[0.1, 0.8],
-            [0.8, 2.5],
-            [2.5, 9.9]]
+z_groups = [[0.1, 1.0],
+            [1.0, 2.0],
+            [2.0, 3.0],
+            [3.0, 9.9]]
 
 id_col_type = float
 
-truth_file = '/Users/Christina/DES/data/balrog/sva1/balrog_sva1_tab{}_TRUTH.fits'
+truth_file = ''
+#'/Users/Christina/DES/data/balrog/sva1/balrog_sva1_tab{}_TRUTH.fits'
 #'/Users/Christina/DES/data/y1a1_gold_d04_dfull_cosmos_matched.fits'
 #'/Users/Christina/DES/data/y1a1_gold_d04_dfull_cosmos_matched_chunk{}-15.fits'
 #'/Users/Christina/DES/data/y1a1_spec_gold_v2_weight_depth.fits'
@@ -41,10 +46,11 @@ data_file = ''
 #'/Users/Christina/DES/data/sva1_gold_auto_good_regions_no_cosmos.fits'
 #'/Users/Christina/DES/magnification/lbgselect/mocks/run7/zprob_mock{}.fits'
 
-results_dir = '/Users/Christina/DES/magnification/lbgselect/'
-output_dir = '/Users/Christina/test/'
-name = 'zprob_balrog_sva1_balrogz_z25_3bins_sigma_tree_noiseless_auto_both_zpcorr_griz_tab{}'
-#'y1a1_gold_cosmosdfull_zminchi2_auto_griz_z3_4bins_full_gauss_000001'
+results_dir = '/home/ckrawiec/DES/magnification/lbgselect/zproboutput/'
+#'/Users/Christina/DES/magnification/lbgselect/'
+output_dir = '/home/ckrawiec/DES/magnification/lbgselect/zproboutput/'
+name = 'y1a1_gold_cosmosdfull_zminchi2_auto_griz_z3_4bins_full_gauss_0000{}'
+#'zprob_balrog_sva1_balrogz_z25_3bins_sigma_tree_noiseless_auto_both_zpcorr_griz_tab{}'
 #'balrog_sva1_balrogz_noiseless_Efuncnoised_z3_3bins_full_gauss_tab01'
 #'y1a1_gold_cosmosd04_cosmosdfull_zminchi2_auto_griz_full_z3_3bins'
 #'y1a1_gold_cosmosd04_cosmosdfull_matched_zminchi2_auto_griz_full_2gauss_z3_4bins'
@@ -103,10 +109,10 @@ def main():
     nums = [str(i).zfill(2) for i in range(1,num_files+1)]
     names, trues = [],[]
     for f in files:
-        if ('tab' in f) or ('chunk' in f):
+        if ('tab' in f) or ('chunk' in f) or ('_0000' in f):
             if f not in names:
                 for num in nums:
-                    if ('tab'+num in f) or ('chunk'+num in f):
+                    if ('tab'+num in f) or ('chunk'+num in f) or ('_0000'+num in f):
                         names.append(f)
                         trues.append(truth_file.format(num))
                     
