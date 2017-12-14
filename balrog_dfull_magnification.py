@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+import time
 from astropy.io import fits
 from scipy.spatial import ckdtree
+from scipy.interpolate import griddata
 
 #remain in linear limit of dn/dmu
 #take sizes into account as well
@@ -33,13 +35,14 @@ brog = fits.open('/Users/Christina/DES/data/balrog_sva1_tab01_TRUTH_fluxes.fits'
 dfull = fits.open('/Users/Christina/DES/data/y1a1_gold_dfull_cosmos.fits')[1].data
 
 #cut out low fluxes
-flux_mask = (dfull['FLUX_AUTO_G'] > cut) & (dfull['FLUX_AUTO_R'] > cut) & (dfull['FLUX_AUTO_I'] > cut) & (dfull['FLUX_AUTO_Z'] > cut)
+flux_mask = (dfull['FLUX_AUTO_G'] > cut) & (dfull['FLUX_AUTO_R'] > cut) & (dfull['FLUX_AUTO_I'] > cut) & (dfull['FLUX_AUTO_Z'] > cut) & (dfull['FLUX_RADIUS_I'] > 0.)
+br_flux_mask = (brog['FLUX_NOISELESS_G'] > 0.) & (brog['FLUX_NOISELESS_R'] > 0.) & (brog['FLUX_NOISELESS_I'] > 0.) & (brog['FLUX_NOISELESS_Z'] > 0.) & (brog['HALFLIGHTRADIUS_0'] > 0.)
 
 #choose just galaxies
 brog_gals = brog['OBJTYPE']==1
 dfull_gals = dfull['MODEST_CLASS']==1
 dfull_stars = dfull['MODEST_CLASS']==0
-brog = brog[brog_gals]
+brog = brog[brog_gals & br_flux_mask]
 sdfull = dfull[dfull_stars]
 dfull = dfull[dfull_gals & flux_mask]
 
@@ -48,22 +51,23 @@ def createdata(sizes=True, logs=True):
         df_vec = [np.log10(dfull['FLUX_AUTO_'+f]) for f in filters]
         br_vec = [np.log10(brog['FLUX_NOISELESS_'+f]) for f in filters]
         #magnified fluxes
-        new_df_vec = df_vec + np.array([np.log10(mu)] * len(filters))
+        new_df_vec = df_vec + np.log10(mu)
     else:
         df_vec = [dfull['FLUX_AUTO_'+f] for f in filters]
         br_vec = [brog['FLUX_NOISELESS_'+f] for f in filters]
         new_df_vec = df_vec * mu
 
+    dfull_hlr = gethlr()
     if sizes:
-        dfull_hlr = gethlr()
-        df_vec.append(list(dfull_hlr))
-        br_vec.append(list(brog['HALFLIGHTRADIUS_0']))
+        df_vec = np.vstack([df_vec, dfull_hlr])
+        br_vec = np.vstack([br_vec, brog['HALFLIGHTRADIUS_0']])
         #magnified sizes
-        new_df_vec = df_vec * np.array([1] * len(filters) + [np.sqrt(mu)])
+        new_dfull_hlr = dfull_hlr * np.sqrt(mu)
+        new_df_vec = np.vstack([new_df_vec, new_dfull_hlr])
         
-    df_data = np.array( zip(*df_vec) )
+    df_data = np.array( zip(*df_vec) )[dfull_hlr>0.]
     br_data = np.array( zip(*br_vec) )
-    new_df_data = np.array( zip(*new_df_vec) )
+    new_df_data = np.array( zip(*new_df_vec) )[dfull_hlr>0.]
     
     return df_data, br_data, new_df_data
 
@@ -122,6 +126,7 @@ def plotslopes(m, a, t, r, s):
 def main():
 
     df_data, br_data, new_df_data = createdata(sizes=True, logs=True)
+
     
     #indices of dfull data
     ids = list(range(len(df_data)))
@@ -184,7 +189,7 @@ def main():
         print "Detected magnified in i_mag range {}-{}: {}\n".format(mag_min, mag_max, new_olap_in_mag)
     
         #dfull
-        t.append(getslopes(dfull, 'MAG_AUTO_I', mask)
+        t.append(getslope(dfull, 'MAG_AUTO_I', mask))
     
         #balrog truth
         r.append(getslope(brog, 'MAG_I', brmask))
