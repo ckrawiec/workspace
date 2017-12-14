@@ -8,7 +8,7 @@ import numpy as np
 import pandas
 import sys
 import time
-from astropy.table import join
+from astropy.table import Table, join
 from astropy.io import fits
 from scipy.spatial import ckdtree
 from scipy.interpolate import griddata
@@ -110,4 +110,5 @@ tab = Table()
 tab['flux_radius_i'] = df['brog_rad']
 tab['avg_flux_radius_i'] = df['brog_psf']
 tab['hlr'] = df['brog_hlr']
+sys.stderr.write('writing to table...\n')
 tab.write('/Users/Christina/DES/data/balrog/sva1/balrog_tab01_avg_star_fluxradiusi_0.1deg.fits')
