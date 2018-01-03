@@ -1,14 +1,16 @@
 import numpy as np
-import healpy as hp
 import sys
 import glob
 import os
-#import esutil
 import matplotlib.pyplot as plt
 from astropy.table import Table, Column, vstack, join
 
 home_dir = '/home/ckrawiec/'
 #'/Users/Christina/'
+
+if home_dir=='/Users/Christina/':
+    import healpy as hp
+    import esutil
 
 y1_gold_z3_4bins_highP = '/Users/Christina/DES/magnification/lbgselect/y1a1_gold_cosmosdfull_zminchi2_auto_griz_z3_4bins_full_gauss_000001_Phigh0.99_positions.csv'
 

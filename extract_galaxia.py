@@ -1,17 +1,22 @@
 import numpy as np
 import glob
+import time
 from astropy.io import fits
 from astropy.table import Table
 
-#galaxia files
-gals = glob.glob('/Users/Christina/DES/data/DES_NSIDE128/Nside128.*.fits')
+n_files = -1
+home_dir = '/home/ckrawiec/'
 
-output = '/Users/Christina/DES/data/DES_NSIDE128_all.fits'
+#galaxia files
+gals = glob.glob(home_dir+'DES/data/Nside128.11*.fits')
+
+output = home_dir+'DES/data/DES_NSIDE128_11.fits'#.format(n_files)
 
 g,r,i,z = [],[],[],[]
 glon, glat = [],[]
 
-for gal in gals:
+start = time.time()
+for gal in gals[:n_files]:
     gal_tab = fits.open(gal, memmap=False)[1].data
     
     g.append(gal_tab['sdss_g'])
@@ -22,6 +27,8 @@ for gal in gals:
     glon.append(gal_tab['glon'])
     glat.append(gal_tab['glat'])
     
+end = time.time()
+
 #make new table
 tab = Table()
 
@@ -34,3 +41,4 @@ tab['sdss_i'] = np.hstack(i)
 tab['sdss_z'] = np.hstack(z)
 
 tab.write(output)
+print "completed in {}s".format(end-start)

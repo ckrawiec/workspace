@@ -1,3 +1,5 @@
+import time
+import sys
 import numpy as np
 from astropy.io import fits
 from astropy.table import Column, Table, join
@@ -29,6 +31,42 @@ def joincorrecttype(tab1_file, tab2_file, col1_name, col2_name, col_type):
         tab2.rename_column(col2_name, col1_name)
     joined = join(tab1, tab2, keys=col1_name)
     return joined
+
+
+def fitsstack(table_list):
+    """
+    Arguments:
+        table_list - list of fits file names
+        
+    Returns:
+        combined HDU using data from HDU 1
+    """
+    nrows=[]
+    data=[]
+
+    for table in table_list:
+        t = fits.open(table)
+        data.append(t[1].data)
+        nrows.append(t[1].data.shape[0])
+        
+    hdu = fits.BinTableHDU.from_columns(t[1].columns, nrows=sum(nrows), fill=True)
+
+    for colname in t[1].columns.names:
+        for i in range(len(data)):
+            hdu.data[colname][sum(nrows[:i]):sum(nrows[:i+1])] = data[i][colname]
+    
+    check=[]
+    for i in range(len(data)):
+        new = hdu.data[colname][sum(nrows[:i])]
+        orig = data[i][colname][0]
+        if (np.isnan(new) or np.isnan(orig)):
+            check.append(True)
+        else:
+            check.append(hdu.data[colname][sum(nrows[:i])]==data[i][colname][0])
+    if np.all(check):
+        return hdu
+    else:
+        raise ValueError('Something went wrong')
 
 def match(list1, list2):
     """
@@ -70,40 +108,12 @@ def match(list1, list2):
 
         return index1, index2
 
-def fitsstack(table_list):
-    """
-    Arguments:
-        table_list - list of fits file names
-        
-    Returns:
-        combined HDU using data from HDU 1
-    """
-    nrows=[]
-    data=[]
-
-    for table in table_list:
-        t = fits.open(table)
-        data.append(t[1].data)
-        nrows.append(t[1].data.shape[0])
-        
-    hdu = fits.BinTableHDU.from_columns(t[1].columns, nrows=sum(nrows), fill=True)
-
-    for colname in t[1].columns.names:
-        for i in range(len(data)):
-            hdu.data[colname][sum(nrows[:i]):sum(nrows[:i+1])] = data[i][colname]
-    
-    check=[]
-    for i in range(len(data)):
-        new = hdu.data[colname][sum(nrows[:i])]
-        orig = data[i][colname][0]
-        if (np.isnan(new) or np.isnan(orig)):
-            check.append(True)
-        else:
-            check.append(hdu.data[colname][sum(nrows[:i])]==data[i][colname][0])
-    if np.all(check):
-        return hdu
+def printtime(stderr=False):
+    now = time.strftime("%Y-%m-%d %H:%M")
+    if stderr:
+        sys.stderr.write(now+"\n")
     else:
-        raise ValueError('Something went wrong')
+        print "#"+now
 
 def writefitsstack(infiles, outfile):
     hdu = fitsstack(infiles)

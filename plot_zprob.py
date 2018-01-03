@@ -1,21 +1,27 @@
+import os
+import sys
+import glob
 import numpy as np
+import pandas as pd
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from astropy.table import Table, join, Column
 from astropy.io import fits
-import glob
-import pandas as pd
-from myutils import fitsstack
+from astropy.table import Table, join, Column
+from myutils import writefitsstack, joincorrecttype, printtime
 
-base_name = 'sva1_gold_cosmosdfull_photoz_auto_griz_z3_3bins_full_gauss'
+base_name = 'sva1_gold_cosmos_zminchi2_auto_griz_z3_3bins_full_gauss'
 #'zprob_SV_z25_3bins_sigma_tree_griz'
 #'zprob_balrog_sva1_z25_3bin_sigma_tree_griz'
 #'zprob_Y1_z25_3bins_sigma_tree_griz'
 #'zprob_balrog_y1a1_z25_3bins_sigma_tree_griz'
 
-home_dir = '/Users/Christina/'
+home_dir = '/home/ckrawiec/'
+SE_col = 'AUTO'
 
+z_groups = [[0.001, 1.0],
+            [1.0, 3.0],
+            [3.0, 9.9]]
 zsrc = [3.0, 9.9]
 zlens = [0.001, 1.0]
 zother = [1.0, 3.0]
@@ -34,79 +40,67 @@ z_file = home_dir+'DES/magnification/lbgselect/zproboutput/{}_combined.fits'.for
 z_files = glob.glob(home_dir+'DES/magnification/lbgselect/zproboutput/{}_*.fits'.format(base_name))
 
 def makeplots():
-    hexbinPsrcmean()
+#    hexbinPsrcmean()
 #    hist2dPall()
 #    NvsPcut()
 #    radecscatter(0.6)
-    histmagi(0.6)
-    histmagislope(0.6)
+#    histmagi(0.9)
+    #histmagislope(0.9)
 #    redmagiccount(0.6)
 #    histhexbin()
+    colorscatter()
 #    hexbinPsrcmeanNorm()
 #    balrogzhist(0.8)
 
-def joincorrecttype(tab1_file, tab2_file, col1_name, col2_name, col_type):
-    #fix tables where match columns are in different formats
-    #to successfully join tab1 & tab2
-    tab1 = Table.read(tab1_file)
-    tab2 = Table.read(tab2_file)
-    
-    keep = []
-    for row in range(len(tab2[col2_name])):
-        try:
-            col_type(tab2[col2_name][row])
-            keep.append(row)
-        except ValueError:
-            continue
+printtime(stderr=True)
 
-    tab2 = tab2[keep]
-    col2 = tab2[col2_name]
-    tab2.remove_column(col2_name)
-    tab2.add_column(Column(data=col2, name=col2_name, dtype=col_type))
+if len(z_files) == 0:
+    sys.stderr.write("chosen base name resulted in no results. exiting.\n")
+    exit()
 
-    if (col2_name != col1_name):
-        tab2.rename_column(col2_name, col1_name)
-    joined = join(tab1, tab2, keys=col1_name)
-    return joined
-
-def writefitsstack(infiles, outfile):
-    hdu = fitsstack(infiles)
-    pri_hdu = fits.PrimaryHDU()
-    hdu_list = fits.HDUList([pri_hdu, hdu])
-    hdu_list.writeto(outfile)
-
-#writefitsstack(z_files, z_file)
+if os.path.exists(z_file):
+    print "combined zprob file already exists! ({})".format(z_file)
+    print "continuing..."
+else:
+    writefitsstack(z_files, z_file)
+    print "successfully combined zprob files"
 
 #ztab = Table.read(z_file)
 #dtab = Table.read(d_file)
 #zbalrogtab = Table.read('/home/ckrawiec/DES/data/balrog_y1a1_truth_index_z.fits')
-
 #newtab = join(dtab, zbalrogtab)
-tab = joincorrecttype(d_file, z_file, d_id_col, z_id_col, id_col_type)
-
 #del ztab, dtab#, zbalrogtab
+printtime(stderr=True)
+sys.stderr.write("before join\n")
+tab = joincorrecttype(d_file, z_file, d_id_col, z_id_col, id_col_type)
+printtime(stderr=True)
+sys.stderr.write("after join\n")
 
-if 'balrog' not in base_name:
-    g = tab['MAG_DETMODEL_G']
-    r = tab['MAG_DETMODEL_R']
-    i = tab['MAG_DETMODEL_I']
-    z = tab['MAG_DETMODEL_Z']
-    Y = tab['MAG_DETMODEL_Y']
-    
-    grbox = (((g-r) < 4.) & ((g-r) > -1.5))
-    ribox = (((r-i) < 4.) & ((r-i) > -1.5))
-    izbox = (((i-z) < 4.) & ((i-z) > -1.5))
-    zYbox = (((z-Y) < 4.) & ((z-Y) > -1.5))
-    
+if 'MAG_'+SE_col+'_G' in tab.colnames:
+    g = tab['MAG_'+SE_col+'_G']
+    r = tab['MAG_'+SE_col+'_R']
+    i = tab['MAG_'+SE_col+'_I']
+    z = tab['MAG_'+SE_col+'_Z']
+    Y = tab['MAG_'+SE_col+'_Y']
+
     gr = g-r
     ri = r-i
     iz = i-z
     zY = z-Y
-
+    
     del g,r,z,Y
+    
+    grbox = (((gr) < 4.) & ((gr) > -1.5))
+    ribox = (((ri) < 4.) & ((ri) > -1.5))
+    izbox = (((iz) < 4.) & ((iz) > -1.5))
+    zYbox = (((zY) < 4.) & ((zY) > -1.5))
+
     
 ra, dec = tab['RA'], tab['DEC']
 
+P = {}
+for z_group in z_groups:
+    P[str(z_group)] = tab['P'+str(z_group)]
 Psrc = tab['P'+str(zsrc)]
 Plens = tab['P'+str(zlens)]
 #Pother = tab['P'+str(zother)]
@@ -122,73 +116,104 @@ y1main = (dec < -35)
 
 notnan = ~np.isnan(Plens) & ~np.isnan(Psrc)
 
-def histmagislope(cut):
-    h = plt.hist(i[spte & (Psrc>cut) & (i>17) & (i<28)], histtype='step', bins=20, label='SPT-E')
-    plt.yscale('log')
-
-    dx = np.gradient(h[1][:-1])
-    logs = np.log10(h[0])
-    alphas = 2.5 * np.gradient(logs, dx)
-    
-    plt.plot(h[1][:-1], alphas, label='alpha')
-    plt.xlim(17,28)
-    plt.legend(loc='upper left')
-    plt.xlabel('mag_detmodel_i')
-    plt.title('P(z > {}) > {}'.format(zsrc[0], cut))
-    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_hist_mag_i_diffslope_Pcut_src'.format(base_name))
+def colorscatter():
+    printtime(stderr=True)
+    plt.scatter(ri[ribox & grbox], gr[ribox & grbox], c=Psrc[ribox & grbox], edgecolor='none', s=2.)
+    plt.xlabel('r - i')
+    plt.ylabel('g - r')
+    plt.colorbar(label='P(z in {})'.format(zsrc))
+    plt.xlim(-1.5, 4.)
+    plt.ylim(-1.5, 4.)
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_Psrc_colorscatter.png'.format(base_name))
     plt.close()
+
+    plt.scatter(ri[ribox & grbox], gr[ribox & grbox], c=Plens[ribox & grbox], edgecolor='none', s=2.)
+    plt.xlabel('r - i')
+    plt.ylabel('g - r')
+    plt.colorbar(label='P(z in {})'.format(zlens))
+    plt.xlim(-1.5, 4.)
+    plt.ylim(-1.5, 4.)
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_Plens_colorscatter.png'.format(base_name))
+    plt.close()
+
+def histmagislope(cut):
+    printtime(stderr=True)
+    sys.stderr.write("working on i-magnitude histogram slopes...\n")
+    for z_group in z_groups:
+        h = plt.hist(i[spte & (P[str(z_group)]>cut) & (i>17) & (i<30)], 
+                     histtype='step', bins=26, label='SPT-E')
+        if len(h[1][:-1])>0:
+            plt.yscale('log')
+        
+            dx = np.gradient(h[1][:-1])
+            logs = np.log10(h[0])
+            alphas = 2.5 * np.gradient(logs, dx)
+
+            plt.plot(h[1][:-1], alphas, label='alpha')
+            plt.xlim(17,28)
+            plt.legend(loc='upper left')
+            plt.xlabel('mag_detmodel_i')
+            plt.title('P(z in {}) > {}'.format(z_group, cut))
+            plt.savefig(home_dir+'DES/magnification/lbgselect/{}_hist_mag_i_diffslope_Pcut{}_{}.png'.format(base_name, 
+                                                                                                            cut, 
+                                                                                                            z_group))
+        plt.close()
+
+    sys.stderr.write("done\n")
 
 
 def histmagi(cut):
-    plt.hist(i[Psrc>cut], histtype='step', bins=1000, label='all')
-    plt.hist(i[spte & (Psrc>cut)], histtype='step', bins=1000, label='SPT-E')
-#    plt.hist(i[cosmos & (Psrc>cut)], histtype='step', bins=1000, label='COSMOS')
-#    plt.hist(i[y1main & (Psrc>cut)], histtype='step', bins=1000, label='y1a1 main')
+    printtime(stderr=True)
+    sys.stderr.write("working on i-magnitude histograms...\n")
+    nbins = 26
+    imask = ((i>17) & (i<30))
+
+    for z_group in z_groups:
+        plt.hist(i[(P[str(z_group)]>cut) & imask & spte], histtype='step', bins=nbins, normed=True,
+                 label='P(z in {}) > {}'.format(z_group, cut))
+#        plt.hist(i[spte & (P[str(z_group)]>cut) & imask], histtype='step', bins=nbins, label='SPT-E')
+#        plt.hist(i[cosmos & (P[str(z_group)]>cut) & imask], histtype='step', bins=nbins, label='COSMOS')
+#        plt.hist(i[y1main & (P[str(z_group)]>cut)], histtype='step', bins=nbins, label='y1a1 main')
     plt.yscale('log')
-    plt.xlim(17,26)
+    plt.xlim(17,30)
     plt.legend(loc='upper left')
-    plt.xlabel('mag_detmodel_i')
-    plt.title('P(z > {}) > {}'.format(zsrc[0], cut))
-    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_hist_mag_i_Pcut_src'.format(base_name))
+    plt.xlabel('MAG_'+SE_col+'_I')
+    plt.ylabel('normalized counts')
+    plt.title('SPT-E')
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_hist_mag_i_Pcut{}.png'.format(base_name, 
+                                                                                           cut))
     plt.close()
 
-    plt.hist(i[Plens>cut], histtype='step', bins=1000, label='all')
-    plt.hist(i[spte & (Plens>cut)], histtype='step', bins=1000, label='SPT-E')
-#    plt.hist(i[cosmos & (Psrc>cut)], histtype='step', bins=1000, label='COSMOS')
-    plt.hist(i[y1main & (Plens>cut)], histtype='step', bins=1000, label='y1a1 main')
-    plt.yscale('log')
-    plt.xlim(17,26)
-    plt.legend(loc='upper left')
-    plt.xlabel('mag_detmodel_i')
-    plt.title('P({} < z < {}) > {}'.format(zlens[0], zlens[1], cut))
-    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_hist_mag_i_Pcut_lens'.format(base_name))
-    plt.close()
+    sys.stderr.write("done\n")
 
 
 def histhexbin():
+    sys.stderr.write("working on hexbin histograms...\n")
     df = pd.DataFrame(zip(ri[ribox & grbox], gr[ribox & grbox]), columns=['r-i', 'g-r'])
-    df.plot.hexbin(x='r-i', y='g-r', gridsize=20, cmap=plt.get_cmap('gnuplot'))
+    df.plot.hexbin(x='r-i', y='g-r', gridsize=20, bins='log', cmap=plt.get_cmap('gnuplot'))
     plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_ri_gr_hist_hexbin'.format(base_name))
     plt.close()
 
     df = pd.DataFrame(zip(iz[izbox & ribox], ri[izbox & ribox]), columns=['i-z', 'r-i'])
-    df.plot.hexbin(x='i-z', y='r-i', gridsize=20, cmap=plt.get_cmap('gnuplot'))
+    df.plot.hexbin(x='i-z', y='r-i', gridsize=20, bins='log', cmap=plt.get_cmap('gnuplot'))
     plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_iz_ri_hist_hexbin'.format(base_name))
     plt.close()
     
     df = pd.DataFrame(zip(zY[zYbox & izbox], iz[zYbox & izbox]), columns=['z-Y', 'i-z'])
-    df.plot.hexbin(x='z-Y', y='i-z', gridsize=20, cmap=plt.get_cmap('gnuplot'))
+    df.plot.hexbin(x='z-Y', y='i-z', gridsize=20, bins='log', cmap=plt.get_cmap('gnuplot'))
     plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_zY_iz_hist_hexbin'.format(base_name))
     plt.close()
+    sys.stderr.write("done\n")
 
 def colorfunc(color):
     return np.log10(np.mean(color)*len(color))
     
 def hexbinPsrcmeanNorm():
+    sys.stderr.write("working on hexbin means...\n")
     df = pd.DataFrame(zip(ri[ribox & grbox], gr[ribox & grbox]), columns=['r-i', 'g-r'])
     df['Psrc']=Psrc[ribox & grbox]
     df.plot.hexbin(x='r-i', y='g-r', C='Psrc', reduce_C_function=colorfunc, gridsize=20, cmap=plt.get_cmap('gnuplot'))
-    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_ri_gr_P_mean_norm_hexbin'.format(base_name))
+    plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_ri_gr_Psrc_mean_norm_hexbin'.format(base_name))
 #    plt.colorbar(label='P{} * N'.format(zsrc))
     plt.close()
 
@@ -211,7 +236,7 @@ def hexbinPsrcmean():
     df.plot.hexbin(x='z-Y', y='i-z', C='Psrc', reduce_C_function=np.mean, gridsize=20, cmap=plt.get_cmap('gnuplot'))
     plt.savefig(home_dir+'DES/magnification/lbgselect/{}_mag_zY_iz_P_mean_hexbin'.format(base_name))
     plt.close()
-
+    sys.stderr.write("done\n")
     
 def hist2dPall():
     plt.hist2d(Plens[notnan], Psrc[notnan], bins=100, norm=mpl.colors.LogNorm())
