@@ -31,8 +31,10 @@ def main():
 #    goodregions('/Users/Christina/DES/data/balrog_sva1_RADEC.fits', sva1_regions)
 #    goodregions('/Users/Christina/DES/data/balrog_sva1_auto_tab01_SIM_TRUTH_zp_corr_fluxes.fits', sva1_regions,
 #                ra_col='ALPHAMODEL_J2000_G', dec_col='DELTAMODEL_J2000_G')
-    goodregions('/Users/Christina/DES/data/random_sva1_redmagic.fits', sva1_regions)
-    sptetrim('/Users/Christina/DES/data/random_sva1_redmagic_good_regions.fits')
+#    goodregions('/Users/Christina/DES/data/random_sva1_redmagic.fits', sva1_regions)
+#    sptetrim('/Users/Christina/DES/data/random_sva1_redmagic_good_regions.fits')
+    goodregions('/home/ckrawiec/DES/data/Galaxia_SV390deg_desflux.fits')
+    sptetrim('/home/ckrawiec/DES/data/Galaxia_SV390deg_desflux_good_regions.fits')
 
 def sptetrim(tab_file, ra_col='RA', dec_col='DEC'):
     tab = Table.read(tab_file)
