@@ -14,12 +14,12 @@ data_dir = '/Users/Christina/DES/data/'
 #format of balrog tables in db
 table_format = "JELENA.BALROG_SVA1_TAB{}_{}_{}"
 
-table_nums = [str(r).zfill(2) for r in range(1,12)]
+table_nums = [str(r).zfill(2) for r in range(3,12)]
 #09 is not valid
 table_nums.remove('09')
 
 bands = ['G','R','I','Z']
-tables = ['SIM']#, 'NOSIM']
+tables = ['TRUTH']#'SIM']#, 'NOSIM']
 
 connection = ea.connect()
 
