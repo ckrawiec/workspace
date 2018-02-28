@@ -1,0 +1,172 @@
+zprob_balrog_sva1_auto_cosmos_photoz_griz_zpcorr_full_z2.5_3bins_v2_tab01
+    # True z in [0.001, 0.8]: 1837025
+    sum(P[0.001, 0.8]) = 784035.423876
+    # True z in [0.8, 2.5]: 2130154
+    sum(P[0.8, 2.5]) = 645188.385102
+    # True z in [2.5, 9.9]: 311061
+    sum(P[2.5, 9.9]) = 73376.1910227
+zprob_balrog_sva1_auto_cosmos_photoz_griz_zpcorr_full_z2.5_3bins_v2_tab02
+    # True z in [0.001, 0.8]: 2034426
+    sum(P[0.001, 0.8]) = 1118645.50995
+    # True z in [0.8, 2.5]: 2362828
+    sum(P[0.8, 2.5]) = 1126500.59186
+    # True z in [2.5, 9.9]: 345260
+    sum(P[2.5, 9.9]) = 164205.898182
+zprob_balrog_sva1_auto_cosmos_photoz_griz_zpcorr_full_z2.5_3bins_v2_tab03
+    # True z in [0.001, 0.8]: 1953469
+    sum(P[0.001, 0.8]) = 973981.208637
+    # True z in [0.8, 2.5]: 2271161
+    sum(P[0.8, 2.5]) = 924696.402029
+    # True z in [2.5, 9.9]: 331617
+    sum(P[2.5, 9.9]) = 103521.389334
+zprob_balrog_sva1_auto_cosmos_photoz_griz_zpcorr_full_z2.5_3bins_v2_tab04
+    # True z in [0.001, 0.8]: 1955161
+    sum(P[0.001, 0.8]) = 975318.427033
+    # True z in [0.8, 2.5]: 2270983
+    sum(P[0.8, 2.5]) = 880700.065332
+    # True z in [2.5, 9.9]: 331267
+    sum(P[2.5, 9.9]) = 107117.507636
+zprob_balrog_sva1_auto_cosmos_photoz_griz_zpcorr_full_z2.5_3bins_v2_tab05
+    # True z in [0.001, 0.8]: 1997413
+    sum(P[0.001, 0.8]) = 885780.418695
+    # True z in [0.8, 2.5]: 2316028
+    sum(P[0.8, 2.5]) = 761832.009027
+    # True z in [2.5, 9.9]: 336484
+    sum(P[2.5, 9.9]) = 72119.5722776
+workspace$ python zprobresults.py 
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab01
+    # True z in [0.001, 0.8]: 1837025
+    sum(P[0.001, 0.8]) = 984376.801737
+    # True z in [0.8, 2.5]: 2130154
+    sum(P[0.8, 2.5]) = 542925.309221
+    # True z in [2.5, 9.9]: 311061
+    sum(P[2.5, 9.9]) = 26196.8890414
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab02
+    # True z in [0.001, 0.8]: 2034426
+    sum(P[0.001, 0.8]) = 1489260.30613
+    # True z in [0.8, 2.5]: 2362828
+    sum(P[0.8, 2.5]) = 947039.832141
+    # True z in [2.5, 9.9]: 345260
+    sum(P[2.5, 9.9]) = 45759.8617327
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab03
+    # True z in [0.001, 0.8]: 1953469
+    sum(P[0.001, 0.8]) = 1253003.90642
+    # True z in [0.8, 2.5]: 2271161
+    sum(P[0.8, 2.5]) = 782542.534651
+    # True z in [2.5, 9.9]: 331617
+    sum(P[2.5, 9.9]) = 33351.5589292
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab04
+    # True z in [0.001, 0.8]: 1955161
+    sum(P[0.001, 0.8]) = 1257807.45918
+    # True z in [0.8, 2.5]: 2270983
+    sum(P[0.8, 2.5]) = 740509.696068
+    # True z in [2.5, 9.9]: 331267
+    sum(P[2.5, 9.9]) = 35168.8447475
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab05
+    # True z in [0.001, 0.8]: 1997413
+    sum(P[0.001, 0.8]) = 1115434.8486
+    # True z in [0.8, 2.5]: 2316028
+    sum(P[0.8, 2.5]) = 651458.584632
+    # True z in [2.5, 9.9]: 336484
+    sum(P[2.5, 9.9]) = 26840.5667633
+workspace$ python zprobresults.py 
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab01
+    # True z in [0.001, 0.8]: 1837025
+    sum(P[0.001, 0.8]) = 984376.801737
+    # True z in [0.8, 2.5]: 2130154
+    sum(P[0.8, 2.5]) = 542925.309221
+    # True z in [2.5, 9.9]: 311061
+    sum(P[2.5, 9.9]) = 26196.8890414
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab02
+    # True z in [0.001, 0.8]: 2034426
+    sum(P[0.001, 0.8]) = 1489260.30613
+    # True z in [0.8, 2.5]: 2362828
+    sum(P[0.8, 2.5]) = 947039.832141
+    # True z in [2.5, 9.9]: 345260
+    sum(P[2.5, 9.9]) = 45759.8617327
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab03
+    # True z in [0.001, 0.8]: 1953469
+    sum(P[0.001, 0.8]) = 1253003.90642
+    # True z in [0.8, 2.5]: 2271161
+    sum(P[0.8, 2.5]) = 782542.534651
+    # True z in [2.5, 9.9]: 331617
+    sum(P[2.5, 9.9]) = 33351.5589292
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab04
+    # True z in [0.001, 0.8]: 1955161
+    sum(P[0.001, 0.8]) = 1257807.45918
+    # True z in [0.8, 2.5]: 2270983
+    sum(P[0.8, 2.5]) = 740509.696068
+    # True z in [2.5, 9.9]: 331267
+    sum(P[2.5, 9.9]) = 35168.8447475
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab05
+    # True z in [0.001, 0.8]: 1997413
+    sum(P[0.001, 0.8]) = 1115434.8486
+    # True z in [0.8, 2.5]: 2316028
+    sum(P[0.8, 2.5]) = 651458.584632
+    # True z in [2.5, 9.9]: 336484
+    sum(P[2.5, 9.9]) = 26840.5667633
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab06
+    # True z in [0.001, 0.8]: 1914792
+    sum(P[0.001, 0.8]) = 1215845.14514
+    # True z in [0.8, 2.5]: 2224822
+    sum(P[0.8, 2.5]) = 722660.549053
+    # True z in [2.5, 9.9]: 323713
+    sum(P[2.5, 9.9]) = 29964.3058104
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab07
+    # True z in [0.001, 0.8]: 1958106
+    sum(P[0.001, 0.8]) = 1348285.88858
+    # True z in [0.8, 2.5]: 2268017
+    sum(P[0.8, 2.5]) = 801436.256361
+    # True z in [2.5, 9.9]: 330729
+    sum(P[2.5, 9.9]) = 36124.8550567
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab08
+    # True z in [0.001, 0.8]: 1954058
+    sum(P[0.001, 0.8]) = 1341208.20515
+    # True z in [0.8, 2.5]: 2271150
+    sum(P[0.8, 2.5]) = 828205.671033
+    # True z in [2.5, 9.9]: 331056
+    sum(P[2.5, 9.9]) = 37665.1238184
+zprob_balrog_sva1_balrogz_griz_zpcorr_tree_z2.5_3bins_v2_tab10
+    # True z in [0.001, 0.8]: 2075827
+    sum(P[0.001, 0.8]) = 812658.444677
+    # True z in [0.8, 2.5]: 2409308
+    sum(P[0.8, 2.5]) = 367172.401165
+    # True z in [2.5, 9.9]: 350929
+    sum(P[2.5, 9.9]) = 22283.1541581
+workspace$ python mockresults.py 
+zprob_mock01
+    sum(P[0.001, 3.0]) = 199375.600492
+    sum(P[3.0, 9.9]) = 100624.399508
+zprob_mock02
+    sum(P[0.001, 3.0]) = 203231.251461
+    sum(P[3.0, 9.9]) = 96768.7485387
+zprob_mock03
+    sum(P[0.001, 3.0]) = 197447.190137
+    sum(P[3.0, 9.9]) = 102552.809863
+zprob_mock04
+    sum(P[0.001, 3.0]) = 242584.076902
+    sum(P[3.0, 9.9]) = 57415.923098
+zprob_mock05
+    sum(P[0.001, 3.0]) = 198482.524825
+    sum(P[3.0, 9.9]) = 101517.475175
+zprob_mock06
+    sum(P[0.001, 3.0]) = 213629.60033
+    sum(P[3.0, 9.9]) = 86370.3996702
+zprob_mock01_tree
+    sum(P[0.001, 3.0]) = 201325.04395
+    sum(P[3.0, 9.9]) = 98674.9560498
+zprob_mock02_tree
+    sum(P[0.001, 3.0]) = 207973.953111
+    sum(P[3.0, 9.9]) = 92026.0468887
+zprob_mock03_tree
+    sum(P[0.001, 3.0]) = 214021.340425
+    sum(P[3.0, 9.9]) = 85978.6595749
+zprob_mock04_tree
+    sum(P[0.001, 3.0]) = 264507.393206
+    sum(P[3.0, 9.9]) = 35492.6067937
+zprob_mock05_tree
+    sum(P[0.001, 3.0]) = 209484.261598
+    sum(P[3.0, 9.9]) = 90514.7384018
+zprob_mock06_tree
+    sum(P[0.001, 3.0]) = 231854.166858
+    sum(P[3.0, 9.9]) = 68145.8331417

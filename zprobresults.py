@@ -18,7 +18,6 @@ if home_dir == '/Users/Christina/':
     import healpy as hp
 
 
-
 def rparseconfig(config_file):
     config = ConfigParser.SafeConfigParser()
     config.read(config_file)
@@ -28,12 +27,13 @@ def rparseconfig(config_file):
     
     rparams['num_files'] = config.getint('Parameters', 'num_files')
     rparams['truth_file'] = config.get('Parameters', 'truth_file')
+    rparams['truth_id_column'] = config.get('Parameters', 'truth_id_column')
     rparams['data_file'] = config.get('Parameters', 'data_file')
     rparams['redshift_column'] = config.get('Parameters', 'redshift_column')
 
     rparams['results_dir'] = config.get('Parameters', 'results_dir')
     rparams['output_dir'] = config.get('Parameters', 'output_dir')
-
+    
     return rparams
     
 def mask(table, ra_col='RA', dec_col='DEC', y1a1_wide=True):
@@ -82,48 +82,41 @@ def autocolors(dtable, title, colormask):
     plt.close()
 
 def main(args):
-    params = parseconfig(args[1])
-    rparams = rparseconfig(args[2])
-
-    name = os.path.splitext(os.path.basename(params['output_file']))[0]
-
+    #params for truth/data comparison
+    rparams = rparseconfig(args[1])
     z_column = rparams['redshift_column']
-    z_groups = params['redshift_ranges']
-    id_column_targ = params['target_id_column']
-    id_column_true = id_column_targ
-
     check_truth = rparams['check_truth']
-
     truth_file = rparams['truth_file']
+    id_column_true = rparams['truth_id_column']
     data_file = rparams['data_file']
-
     results_dir = rparams['results_dir']
     output_dir = rparams['output_dir']
+    num_files = rparams['num_files']    
 
-    num_files = rparams['num_files']
-    
-    files = [''.join(os.path.splitext(f)[0]).split('/')[-1] for f in glob.glob(results_dir+name.format('*')+'*fits')]
+    id_col_type = int
 
-    id_col_type = float
-    
+    #params for each results config
+    files = glob.glob(args[2])
+
     print "Files found: "
     for fi in files:
         print "    ", fi
+
+    name = os.path.splitext(os.path.basename(args[2].replace('*','{}').format('all')))[0]
+    names = []
     
-    #make file names
-    nums = [str(i).zfill(2) for i in range(1,num_files+1)]
-    names, trues = [],[]
-    for f in files:
-        if ('tab' in f) or ('chunk' in f) or ('_0000' in f):
-            if f not in names:
-                for num in nums:
-                    if ('tab'+num in f) or ('chunk'+num in f) or ('_0000'+num in f):
-                        names.append(f)
-                        trues.append(truth_file.format(num))
-                    
-        else:
-            names.append(f)
-            trues.append(truth_file)
+    for fi in files:
+        try:
+            params = parseconfig(fi)
+            names.append(os.path.splitext(os.path.basename(params['output_file']))[0])
+        except ConfigParser.NoSectionError:
+            print fi
+            exit()
+
+    params = parseconfig(files[0])
+    #should be the same for all configs
+    z_groups = params['redshift_ranges']
+    id_column_targ = params['target_id_column']
     
     #open text file
     stats_file = output_dir+name.format('')+'_Pstats.txt'
@@ -155,11 +148,11 @@ def main(args):
         f.write("    {}\n".format(table_name))
 
         if check_truth==True:
-            print "    ", trues[i]
-            f.write("    {}\n".format(trues[i]))
+            print "    ", truth_file
+            f.write("    {}\n".format(truth_file))
         
             #join results and truth tables
-            joined = joincorrecttype(trues[i], table_name,
+            joined = joincorrecttype(truth_file, table_name,
                                      id_column_true, id_column_targ,
                                      id_col_type)
             
@@ -175,11 +168,6 @@ def main(args):
                 joined = joincorrecttype(data_file, table_name,
                                         id_column_targ, id_column_targ,
                                         id_col_type)
-               # if 'maskedtargets' in output_dir:
-               #     sys.stderr.write('masking...\n')
-               #     joined = mask(joined)
-               #     sys.stderr.write('done\n')
-                
             else:
                 joined = Table.read(table_name)
             
@@ -218,17 +206,18 @@ def main(args):
     #for each file
     for i in range(len(results_dict['name'])):
         for z_group in z_groups:
-            P = results_dict['P'+str(z_group)][i]
+            P = np.array(results_dict['P'+str(z_group)][i])
             plt.hist(P[~np.isnan(P)], bins=100,
                     histtype='step', log=True, label=str(z_group))
         plt.xlabel('P')
         plt.legend()
         plt.savefig(output_dir+results_dict['name'][i]+'_Phist.png')
         plt.close()
-        
+
+
     #combined files
     for z_group in z_groups:
-        P = np.hstack(results_dict['P'+str(z_group)])
+        P = np.array(np.hstack(results_dict['P'+str(z_group)]))
         plt.hist(P[~np.isnan(P)], bins=50,
                  histtype='step', log=True, label=str(z_group))
         plt.xlabel('P')
@@ -350,23 +339,23 @@ def main(args):
     plt.ylabel('N')
     plt.legend(loc='best')
     plt.xlim(0., 1.)
-#    plt.ylim(1., 1.e6)
+    plt.ylim(1., 1.e6)
     plt.savefig(output_dir+name.format('')+'_Pbin_hist.png')
     plt.close()
 
      #combined files
     ci=0
     for z_group in z_groups:
-        plt.bar(xp, np.sum(results_dict['single_Ns'+str(z_group)], axis=0)/float(len(np.hstack(results_dict['P'+str(z_groups[0])]))),
-                align='center', width=bin_size, color=colors[ci], alpha=0.2,
-                log=True, label=str(z_group))
-        plt.scatter(xp, np.sum(results_dict['single_Ns'+str(z_group)], axis=0)/float(len(np.hstack(results_dict['P'+str(z_groups[0])]))),
-                    edgecolor='none', c=colors[ci])
+        Nfrac = np.sum(results_dict['single_Ns'+str(z_group)], axis=0)/float(len(np.hstack(results_dict['P'+str(z_groups[0])])))
+        plt.bar(xp, Nfrac, align='center', width=bin_size,
+                color=colors[ci], alpha=0.2, log=True, label=str(z_group))
+        plt.scatter(xp, Nfrac, edgecolor='none', c=colors[ci])
         ci+=1
     plt.xlabel('P')
     plt.ylabel('N/Ntot')
     plt.legend(loc='best')
     plt.xlim(0., 1.)
+    plt.ylim(0.001,1)
     plt.savefig(output_dir+name.format('')+'_Pbin_frachist.png')
     plt.close()
 
