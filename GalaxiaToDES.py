@@ -4,7 +4,7 @@ from astropy.io import fits
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-import ebf
+
 
 inputfile  = '/Users/Christina/Galaxia/output/DESSV/SV390deg.ebf'
 outputfile = '/Users/Christina/Galaxia/output/DESSV/SV390deg_desflux.fits'

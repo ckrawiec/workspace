@@ -4,7 +4,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.table import Column, Table, join
 
-def joincorrecttype(tab1_file, tab2_file, col1_name, col2_name, col_type):
+def joincorrecttype(tab1_file, tab2_file, col1_name, col2_name, col_type=float):
     """
     Fix tables where matching columns are in different formats
         by converting col2 to col_type.
@@ -25,10 +25,12 @@ def joincorrecttype(tab1_file, tab2_file, col1_name, col2_name, col_type):
     tab2 = tab2[keep]
     col2 = tab2[col2_name]
     tab2.remove_column(col2_name)
-    tab2.add_column(Column(data=col2, name=col2_name, dtype=col_type))
+    tab2.add_column(Column(data=col2, name=col1_name, dtype=col_type))
 
-    if (col2_name != col1_name):
-        tab2.rename_column(col2_name, col1_name)
+    col1 = tab1[col1_name]
+    tab1.remove_column(col1_name)
+    tab1.add_column(Column(data=col1, name=col1_name, dtype=col_type))
+
     joined = join(tab1, tab2, keys=col1_name)
     return joined
 
